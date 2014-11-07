@@ -3,6 +3,7 @@ package be.khlim.student.cmee.cmee;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,6 +45,13 @@ public class MainMenu extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void GoPlay(View view){
+
+        Intent intent = new Intent(this, Game.class);
+        //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+        startActivity(intent);
     }
 
     /**

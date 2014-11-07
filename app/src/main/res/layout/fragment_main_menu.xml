@@ -20,6 +20,7 @@
             android:text="Play"
             android:id="@+id/buttonPlay"
             android:layout_gravity="center_horizontal"
-            android:layout_weight="0.03" />
+            android:layout_weight="0.03"
+            android:onClick="GoPlay"/>
     </LinearLayout>
 </RelativeLayout>

@@ -23,7 +23,7 @@ public class Game extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-        
+
     }
 
     /**
