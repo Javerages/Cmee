@@ -1,9 +1,13 @@
 package be.khlim.student.cmee.cmee;
 
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
-import android.support.v4.app.FragmentActivity;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v4.app.FragmentActivity;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -14,7 +18,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class Game extends FragmentActivity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener,LocationListener {
+public class Game extends FragmentActivity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private LocationClient locationClient;
@@ -26,12 +30,19 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
         setContentView(R.layout.activity_game);
         setUpMapIfNeeded();
 
-        locationClient = new LocationClient(this,this,this);
+       /* LocationManager locManager = (LocationManager) getSystemService("LOCATION_SERVICE");
+        if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(this, "Please enable gps", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        }
+
+        locationClient = new LocationClient(this, this, this);
         locationClient.connect();
         locationRequest = locationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(10000)
-                .setFastestInterval(2000);
+                .setFastestInterval(2000);*/
     }
 
     @Override
@@ -45,11 +56,11 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
      * call {@link #setUpMap()} once when {@link #mMap} is not null.
-     * <p>
+     * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
      * install/update the Google Play services APK on their device.
-     * <p>
+     * <p/>
      * A user can return to this FragmentActivity after following the prompt and correctly
      * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
      * have been completely destroyed during this process (it is likely that it would only be
@@ -72,7 +83,7 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
      * just add a marker near Africa.
-     * <p>
+     * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
@@ -81,13 +92,14 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-        locationClient.requestLocationUpdates(locationRequest, (com.google.android.gms.location.LocationListener) this);
-
+        if (locationClient.isConnected()) {
+            locationClient.requestLocationUpdates(locationRequest, (com.google.android.gms.location.LocationListener) this);
+        }
     }
 
     @Override
     public void onDisconnected() {
-
+        locationClient.removeLocationUpdates((com.google.android.gms.location.LocationListener) this);
     }
 
     @Override
@@ -102,9 +114,11 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
 
     @Override
     public void onLocationChanged(Location location) {
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(location.getLatitude(),location.getLongitude()))
-                .icon(BitmapDescriptorFactory.fromResource()));
+        if (locationClient.isConnected()) {
+            mMap.clear();
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(location.getLatitude(), location.getLongitude())));
+        }
     }
 
     @Override
