@@ -18,6 +18,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.Console;
+
 public class Game extends FragmentActivity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -118,6 +120,8 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
             mMap.clear();
             mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(location.getLatitude(), location.getLongitude())));
+
+
         }
     }
 
