@@ -4,6 +4,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -20,36 +21,66 @@ import java.util.Vector;
 public class Game extends FragmentActivity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private LocationClient locationClient;
-    private LocationRequest locationRequest;
     private Vector<Player> Players = new Vector();
     private Vector<Capturepoint> Capturepoints = new Vector();
+
+    // Milliseconds per second
+    private static final int MILLISECONDS_PER_SECOND = 1000;
+    // Update frequency in seconds
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+    // Update frequency in milliseconds
+    private static final long UPDATE_INTERVAL =
+            MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
+    // The fastest update frequency, in seconds
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
+    // A fast frequency ceiling in milliseconds
+    private static final long FASTEST_INTERVAL =
+            MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
+    private LocationRequest locReq;
+    private LocationClient locClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        locReq = LocationRequest.create();
+        // Use high accuracy
+        locReq.setPriority(
+                LocationRequest.PRIORITY_HIGH_ACCURACY);
+        // Set the update interval to 5 seconds
+        locReq.setInterval(UPDATE_INTERVAL);
+        // Set the fastest update interval to 1 second
+        locReq.setFastestInterval(FASTEST_INTERVAL);
+        locClient = new LocationClient(this, this, this);
+        locClient.connect();
+
         setUpMapIfNeeded();
-
-       LocationManager locManager = (LocationManager) getSystemService("LOCATION_SERVICE");
-        if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "Please enable gps", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivity(intent);
-        }
-
-        locationClient = new LocationClient(this, this, this);
-        locationClient.connect();
-        locationRequest = locationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10000)
-                .setFastestInterval(2000);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+    }
+
+    @Override
+    protected void onStop() {
+        // If the client is connected
+        if (locClient.isConnected()) {
+            /*
+             * Remove location updates for a listener.
+             * The current Activity is the listener, so
+             * the argument is "this".
+             */
+            locClient.removeLocationUpdates((com.google.android.gms.location.LocationListener) this);
+        }
+        /*
+         * After disconnect() is called, the client is
+         * considered "dead".
+         */
+        locClient.disconnect();
+        super.onStop();
     }
 
     /**
@@ -89,24 +120,23 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     private void setUpMap() {
         if (mMap != null) {
             Players.add(new Player(Player.Teams.None, null, true));
-
-            if (locationClient.isConnected()) {
-                DrawAll();
+            if (locClient.isConnected()) {
+                RefreshMap();
             }
         }
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        if (locationClient.isConnected()) {
-            locationClient.requestLocationUpdates(locationRequest, (com.google.android.gms.location.LocationListener) this);
-
+        if (locClient.isConnected()) {
+            locClient.requestLocationUpdates(locReq, (com.google.android.gms.location.LocationListener) this);
         }
     }
 
     @Override
     public void onDisconnected() {
-        locationClient.removeLocationUpdates((com.google.android.gms.location.LocationListener) this);
+        Toast.makeText(this, "Disconnected. Please re-connect.",
+                Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -121,9 +151,13 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
 
     @Override
     public void onLocationChanged(Location location) {
-        if (locationClient.isConnected()) {
-            Players.elementAt(0).SetLocation(location);
-            DrawAll();
+        if (locClient.isConnected()) {
+            for (int i = 0; i <= Players.size(); i++) {
+                if (Players.elementAt(i).GetIsMe()) {
+                    Players.elementAt(i).SetLocation(location);
+                }
+            }
+            RefreshMap();
         }
     }
 
@@ -138,7 +172,7 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     }
 
 
-    private void DrawAll() {
+    private void RefreshMap() {
         if (mMap != null) {
             mMap.clear();
             float center = 0.5f;
