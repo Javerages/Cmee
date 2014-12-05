@@ -1,8 +1,11 @@
 package be.khlim.student.cmee.cmee;
 
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
@@ -27,15 +30,16 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     // Milliseconds per second
     private static final int MILLISECONDS_PER_SECOND = 1000;
     // Update frequency in seconds
-    public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 10;
     // Update frequency in milliseconds
     private static final long UPDATE_INTERVAL =
             MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
     // The fastest update frequency, in seconds
-    private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 2;
     // A fast frequency ceiling in milliseconds
     private static final long FASTEST_INTERVAL =
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
+
     private LocationRequest locReq;
     private LocationClient locClient;
 
@@ -43,6 +47,18 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(this, "Pls enable gps",Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        }
+
+
+        locClient = new LocationClient(this, this, this);
+        locClient.connect();
+
 
         locReq = LocationRequest.create();
         // Use high accuracy
@@ -52,10 +68,9 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
         locReq.setInterval(UPDATE_INTERVAL);
         // Set the fastest update interval to 1 second
         locReq.setFastestInterval(FASTEST_INTERVAL);
-        locClient = new LocationClient(this, this, this);
-        locClient.connect();
 
         setUpMapIfNeeded();
+
     }
 
     @Override
@@ -129,7 +144,10 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     @Override
     public void onConnected(Bundle bundle) {
         if (locClient.isConnected()) {
-            locClient.requestLocationUpdates(locReq, (com.google.android.gms.location.LocationListener) this);
+            // Display the connection status
+            Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+            // If already requested, start periodic updates #error#
+                locClient.requestLocationUpdates(locReq, (com.google.android.gms.location.LocationListener) this);
         }
     }
 
