@@ -30,9 +30,12 @@ import java.util.Vector;
 public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private Vector<Player> Players = new Vector();
-    private Vector<Capturepoint> Capturepoints = new Vector();
-    int maxpoints = 10;
+    private Vector<Player> Players = new Vector<Player>();
+    private Vector<Capturepoint> Capturepoints = new Vector<Capturepoint>();
+
+    int nrOfPoints = 10;
+    int nrOfPlayers = 10;
+    int radius = 100;
 
     // Milliseconds per second
     private static final int MILLISECONDS_PER_SECOND = 1000;
@@ -78,52 +81,49 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
         setUpMapIfNeeded();
 
-        for (int i = 0; i < maxpoints; i++) {
-            Capturepoints.add(new Capturepoint(i, loc));
+    }
+
+        @Override
+        protected void onResume () {
+            super.onResume();
+            setUpMapIfNeeded();
         }
 
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-    }
-
-    @Override
-    protected void onStop() {
-        // If the client is connected
-        if (locClient.isConnected()) {
+        @Override
+        protected void onStop () {
+            // If the client is connected
+            if (locClient.isConnected()) {
             /*
              * Remove location updates for a listener.
              * The current Activity is the listener, so
              * the argument is "this".
              */
-            locClient.removeLocationUpdates(this);
-        }
+                locClient.removeLocationUpdates(this);
+            }
         /*
          * After disconnect() is called, the client is
          * considered "dead".
          */
-        locClient.disconnect();
-        super.onStop();
-    }
+            locClient.disconnect();
+            super.onStop();
+        }
 
-    /**
-     * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-     * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
-     * <p/>
-     * If it isn't installed {@link SupportMapFragment} (and
-     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
-     * install/update the Google Play services APK on their device.
-     * <p/>
-     * A user can return to this FragmentActivity after following the prompt and correctly
-     * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
-     * have been completely destroyed during this process (it is likely that it would only be
-     * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
-     * method in {@link #onResume()} to guarantee that it will be called.
-     */
+        /**
+         * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
+         * installed) and the map has not already been instantiated.. This will ensure that we only ever
+         * call {@link #setUpMap()} once when {@link #mMap} is not null.
+         * <p/>
+         * If it isn't installed {@link SupportMapFragment} (and
+         * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
+         * install/update the Google Play services APK on their device.
+         * <p/>
+         * A user can return to this FragmentActivity after following the prompt and correctly
+         * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
+         * have been completely destroyed during this process (it is likely that it would only be
+         * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
+         * method in {@link #onResume()} to guarantee that it will be called.
+         */
+
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
@@ -179,6 +179,65 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 if (Players.elementAt(i).GetIsMe()) {
                     Players.elementAt(i).SetLocation(location);
                 }
+                }
+
+            if (Capturepoints.size() < 1 ){
+                for (int i = 0; i <= 1 - 1; i++) {
+                    // initialise players *to be added* (maybe in a download_finished event)
+                }
+
+                //add random points to capture
+                Capturepoints.clear();
+                for (int i = 1; i <= nrOfPoints; i++) {// initialise points
+
+                    double tmpX, tmpY;
+                    // for extra randomness
+                    //rnd is used for x and wether y is substracted or added
+                    //rnd2 is used for y and wether x is substracted or added
+                    //This may cause some predictable patterns but oh well
+                    // X = longitude, Y = latitude
+
+                    //calculate X
+
+                    if (Math.random() <0.5f) {
+                        tmpX = Players.elementAt(0).GetX() - (Math.random() / 10000.0) * radius;
+                    } else {
+                        tmpX = Players.elementAt(0).GetX() + (Math.random()/ 10000.0) * radius;
+                    }
+
+
+                    //check on international dateline
+                    while (tmpX > 180 | tmpX < -180) {
+                        if (tmpX > 180) {
+                            tmpX = -180 + (tmpX - 180);
+                        }
+                        if (tmpX < -180) {
+                            tmpX = 180 - (tmpX + 180);
+                        }
+                    }
+
+                    //calculate Y
+                    if (Math.random() < 0.5f) {
+                        tmpY = Players.elementAt(0).GetY() + (Math.random() / 10000.0) * radius;
+                    } else {
+                        tmpY = Players.elementAt(0).GetY() - (Math.random() / 10000.0) * radius;
+                    }
+
+                    //check on international dateline
+                    while (tmpY > 90 | tmpY < -90) {
+                        if (tmpY < -90) {
+                            tmpY = 90 - (tmpY + 90);
+                        }
+                        if (tmpY > 90) {
+                            tmpY = -90 + (tmpY - 90);
+                        }
+                    }
+
+                    Capturepoint dummy = new Capturepoint(i,tmpX, tmpY);
+                    // set point
+                    Capturepoints.add(dummy);
+
+                }//next point
             }
             RefreshMap();
         }
@@ -192,21 +251,16 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 if (Players.elementAt(i).GetLocation() != null) {
 
                     if (Players.elementAt(i).GetIsMe()) {
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY()),15f)));
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY()),
+                                        (float) (17f / Math.pow(radius / 10, 0.15))
+                                )));
                     }
-
-                    mMap.addCircle(new CircleOptions()
-                            .center(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY()))
-                            .radius(20)
-                            .strokeColor(android.R.color.black)
-                            .strokeWidth(5)
-                            .fillColor(Color.argb(200, 180, 180, 255)));
 
                     Drawable d = getResources().getDrawable(R.drawable.playercircle);
                     BitmapDrawable bd = (BitmapDrawable) d.getCurrent();
                     Bitmap b = bd.getBitmap();
-                    Bitmap bhalfsize = Bitmap.createScaledBitmap(b,( b.getWidth() / (int) mMap.getCameraPosition().zoom) *2, (b.getHeight() / (int) mMap.getCameraPosition().zoom)*2, false);
+                    Bitmap bhalfsize = Bitmap.createScaledBitmap(b, (b.getWidth() / (int) mMap.getCameraPosition().zoom) * 2, (b.getHeight() / (int) mMap.getCameraPosition().zoom) * 2, false);
 
                     mMap.addMarker(new MarkerOptions()
                             .icon(BitmapDescriptorFactory.fromBitmap(bhalfsize))
@@ -215,6 +269,18 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                     //Toast.makeText(this, "Location gotten :" +Players.elementAt(i).GetX() +" " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
 
                 }
+            }
+
+            for (int i = 0; i < Capturepoints.size(); i++) {
+                mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(Capturepoints.elementAt(i).GetX(), Capturepoints.elementAt(i).GetY()))
+                        .radius(10000)
+                        .strokeColor(android.R.color.black)
+                        .strokeWidth(5)
+                        .fillColor(Color.argb(200, 180, 180, 255)));
+
+                Toast.makeText(this, "Location gotten :" +Capturepoints.elementAt(i).GetX() +" " + Capturepoints.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
+
             }
         }
     }

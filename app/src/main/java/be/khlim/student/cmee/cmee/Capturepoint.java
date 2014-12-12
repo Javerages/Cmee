@@ -2,6 +2,8 @@ package be.khlim.student.cmee.cmee;
 
 import android.location.Location;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by 10368301 on 28/11/2014.
  */
@@ -9,13 +11,13 @@ public class Capturepoint extends Point{
 
     private int index;
     private boolean captured;
-    private Location loc_;
+    private LatLng loc_;
 
-    public Capturepoint(int index, Location loc)
+    public Capturepoint(int index, double x, double y)
     {
         this.index = index;
         captured = false;
-        this.loc_ = loc;
+        loc_ = new LatLng(x,y);
     }
 
     //*********************//
@@ -24,8 +26,8 @@ public class Capturepoint extends Point{
 
     public int GetIndex(){ return index; }
 
-    public double GetX (){ return loc_.getLongitude(); }
-    public double GetY () { return loc_.getLatitude(); }
+    public double GetX (){ return loc_.longitude; }
+    public double GetY () { return loc_.latitude; }
 
     public boolean GetCaptured () { return captured; }
 
