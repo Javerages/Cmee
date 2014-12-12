@@ -1,8 +1,11 @@
 package be.khlim.student.cmee.cmee;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -13,19 +16,23 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Vector;
 
-public class Game extends FragmentActivity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
+public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Vector<Player> Players = new Vector();
     private Vector<Capturepoint> Capturepoints = new Vector();
+    int maxpoints = 10;
 
     // Milliseconds per second
     private static final int MILLISECONDS_PER_SECOND = 1000;
@@ -50,7 +57,7 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
 
         LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "Pls enable gps",Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Pls enable gps", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             startActivity(intent);
         }
@@ -71,6 +78,10 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
 
         setUpMapIfNeeded();
 
+        for (int i = 0; i < maxpoints; i++) {
+            Capturepoints.add(new Capturepoint(i, loc));
+        }
+
     }
 
     @Override
@@ -88,7 +99,7 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
              * The current Activity is the listener, so
              * the argument is "this".
              */
-            locClient.removeLocationUpdates((com.google.android.gms.location.LocationListener) this);
+            locClient.removeLocationUpdates(this);
         }
         /*
          * After disconnect() is called, the client is
@@ -147,14 +158,13 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
             // Display the connection status
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
             // If already requested, start periodic updates #error#
-                locClient.requestLocationUpdates(locReq, (com.google.android.gms.location.LocationListener) this);
+            locClient.requestLocationUpdates(locReq, this);
         }
     }
 
     @Override
     public void onDisconnected() {
-        Toast.makeText(this, "Disconnected. Please re-connect.",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -163,14 +173,9 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
     public void onLocationChanged(Location location) {
         if (locClient.isConnected()) {
-            for (int i = 0; i <= Players.size(); i++) {
+            for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetIsMe()) {
                     Players.elementAt(i).SetLocation(location);
                 }
@@ -179,30 +184,40 @@ public class Game extends FragmentActivity implements GooglePlayServicesClient.C
         }
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
-
     private void RefreshMap() {
         if (mMap != null) {
             mMap.clear();
             float center = 0.5f;
-            for (int i = 0; i <= Players.size(); i++) {
+            for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetLocation() != null) {
+
+                    if (Players.elementAt(i).GetIsMe()) {
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY()),15f)));
+                    }
+
+                    mMap.addCircle(new CircleOptions()
+                            .center(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY()))
+                            .radius(20)
+                            .strokeColor(android.R.color.black)
+                            .strokeWidth(5)
+                            .fillColor(Color.argb(200, 180, 180, 255)));
+
+                    Drawable d = getResources().getDrawable(R.drawable.playercircle);
+                    BitmapDrawable bd = (BitmapDrawable) d.getCurrent();
+                    Bitmap b = bd.getBitmap();
+                    Bitmap bhalfsize = Bitmap.createScaledBitmap(b,( b.getWidth() / (int) mMap.getCameraPosition().zoom) *2, (b.getHeight() / (int) mMap.getCameraPosition().zoom)*2, false);
+
                     mMap.addMarker(new MarkerOptions()
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.playercircle))
+                            .icon(BitmapDescriptorFactory.fromBitmap(bhalfsize))
                             .anchor(center, center)
                             .position(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY())));
+                    //Toast.makeText(this, "Location gotten :" +Players.elementAt(i).GetX() +" " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
+
                 }
             }
         }
     }
+
 
 }

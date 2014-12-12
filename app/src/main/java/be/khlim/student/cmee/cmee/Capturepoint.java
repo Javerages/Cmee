@@ -15,6 +15,7 @@ public class Capturepoint extends Point{
     {
         this.index = index;
         captured = false;
+        this.loc_ = loc;
     }
 
     //*********************//
