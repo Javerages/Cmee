@@ -8,14 +8,19 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.GestureDetectorCompat;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -27,7 +32,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Vector;
 
-public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
+public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener,  GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Vector<Player> Players = new Vector<Player>();
@@ -35,7 +43,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     int nrOfPoints = 10;
     int nrOfPlayers = 10;
-    int radius = 100;
+    int radius = 10;
+    boolean playing = false;
 
     // Milliseconds per second
     private static final int MILLISECONDS_PER_SECOND = 1000;
@@ -45,18 +54,24 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     private static final long UPDATE_INTERVAL =
             MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
     // The fastest update frequency, in seconds
-    private static final int FASTEST_INTERVAL_IN_SECONDS = 2;
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 5;
     // A fast frequency ceiling in milliseconds
     private static final long FASTEST_INTERVAL =
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
 
     private LocationRequest locReq;
-    private LocationClient locClient;
+    private GoogleApiClient mGoogleApiClient;
+    private GestureDetectorCompat mDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        mDetector = new GestureDetectorCompat(this,this);
+        // Set the gesture detector as the double tap
+        // listener.
+        mDetector.setOnDoubleTapListener(this);
 
         LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -66,9 +81,14 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         }
 
 
-        locClient = new LocationClient(this, this, this);
-        locClient.connect();
-
+       // locClient = new LocationClient(this, this, this);
+        // locClient.connect();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
 
         locReq = LocationRequest.create();
         // Use high accuracy
@@ -83,46 +103,45 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     }
 
-        @Override
-        protected void onResume () {
-            super.onResume();
-            setUpMapIfNeeded();
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setUpMapIfNeeded();
+    }
 
-        @Override
-        protected void onStop () {
-            // If the client is connected
-            if (locClient.isConnected()) {
+    @Override
+    protected void onStop() {
+        // If the client is connected
+        if (mGoogleApiClient.isConnected()) {
             /*
              * Remove location updates for a listener.
              * The current Activity is the listener, so
              * the argument is "this".
              */
-                locClient.removeLocationUpdates(this);
-            }
+        }
         /*
          * After disconnect() is called, the client is
          * considered "dead".
          */
-            locClient.disconnect();
-            super.onStop();
-        }
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
 
-        /**
-         * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-         * installed) and the map has not already been instantiated.. This will ensure that we only ever
-         * call {@link #setUpMap()} once when {@link #mMap} is not null.
-         * <p/>
-         * If it isn't installed {@link SupportMapFragment} (and
-         * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
-         * install/update the Google Play services APK on their device.
-         * <p/>
-         * A user can return to this FragmentActivity after following the prompt and correctly
-         * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
-         * have been completely destroyed during this process (it is likely that it would only be
-         * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
-         * method in {@link #onResume()} to guarantee that it will be called.
-         */
+    /**
+     * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
+     * installed) and the map has not already been instantiated.. This will ensure that we only ever
+     * call {@link #setUpMap()} once when {@link #mMap} is not null.
+     * <p/>
+     * If it isn't installed {@link SupportMapFragment} (and
+     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
+     * install/update the Google Play services APK on their device.
+     * <p/>
+     * A user can return to this FragmentActivity after following the prompt and correctly
+     * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
+     * have been completely destroyed during this process (it is likely that it would only be
+     * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
+     * method in {@link #onResume()} to guarantee that it will be called.
+     */
 
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
@@ -146,43 +165,56 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     private void setUpMap() {
         if (mMap != null) {
             Players.add(new Player(Player.Teams.None, null, true));
-            if (locClient.isConnected()) {
+            if (mGoogleApiClient.isConnected()) {
                 RefreshMap();
             }
         }
     }
 
+    private void DoubleTap(){
+
+    }
+
     @Override
     public void onConnected(Bundle bundle) {
-        if (locClient.isConnected()) {
+        if (mGoogleApiClient.isConnected()) {
             // Display the connection status
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
             // If already requested, start periodic updates #error#
-            locClient.requestLocationUpdates(locReq, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, locReq, this);
         }
     }
 
     @Override
-    public void onDisconnected() {
+    public void onConnectionSuspended(int i) {
         Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
+        playing = false;
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
+        playing = false;
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        if (locClient.isConnected()) {
+        if (mGoogleApiClient.isConnected()) {
             for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetIsMe()) {
                     Players.elementAt(i).SetLocation(location);
+                    if (!playing) {
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(i).GetX(),
+                                        Players.elementAt(i).GetY()),
+                                        (float) (17f / Math.pow(radius / 10, 0.15))
+                                )));
+                    }
                 }
-                }
+            }
 
-            if (Capturepoints.size() < 1 ){
-                for (int i = 0; i <= 1 - 1; i++) {
+            if (Capturepoints.size() < 1 && !playing) {
+                for (int i = 0; i <= nrOfPlayers; i++) {
                     // initialise players *to be added* (maybe in a download_finished event)
                 }
 
@@ -199,10 +231,10 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
                     //calculate X
 
-                    if (Math.random() <0.5f) {
+                    if (Math.random() < 0.5f) {
                         tmpX = Players.elementAt(0).GetX() - (Math.random() / 10000.0) * radius;
                     } else {
-                        tmpX = Players.elementAt(0).GetX() + (Math.random()/ 10000.0) * radius;
+                        tmpX = Players.elementAt(0).GetX() + (Math.random() / 10000.0) * radius;
                     }
 
 
@@ -233,13 +265,22 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                         }
                     }
 
-                    Capturepoint dummy = new Capturepoint(i,tmpX, tmpY);
+                    Capturepoint dummy = new Capturepoint(i , tmpY, tmpX);
                     // set point
                     Capturepoints.add(dummy);
 
                 }//next point
             }
+
+           double acc = location.getAccuracy();
+            if (acc < 25) {
+                CheckHits(acc + radius);
+            }
+            else{
+                Toast.makeText(this, "Can't capture due to poor connection (acc = " + acc +")", Toast.LENGTH_SHORT).show();
+            }
             RefreshMap();
+            playing = true;
         }
     }
 
@@ -250,40 +291,126 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetLocation() != null) {
 
-                    if (Players.elementAt(i).GetIsMe()) {
-                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY()),
-                                        (float) (17f / Math.pow(radius / 10, 0.15))
-                                )));
-                    }
 
                     Drawable d = getResources().getDrawable(R.drawable.playercircle);
                     BitmapDrawable bd = (BitmapDrawable) d.getCurrent();
                     Bitmap b = bd.getBitmap();
-                    Bitmap bhalfsize = Bitmap.createScaledBitmap(b, (b.getWidth() / (int) mMap.getCameraPosition().zoom) * 2, (b.getHeight() / (int) mMap.getCameraPosition().zoom) * 2, false);
+                    Bitmap bhalfsize = Bitmap.createScaledBitmap(b, ((b.getWidth() - 50) / (int)mMap.getCameraPosition().zoom) * 2, ((b.getHeight() - 50) / (int) mMap.getCameraPosition().zoom) * 2, false);
 
                     mMap.addMarker(new MarkerOptions()
                             .icon(BitmapDescriptorFactory.fromBitmap(bhalfsize))
                             .anchor(center, center)
                             .position(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY())));
-                    Toast.makeText(this, "P Location gotten :" +Players.elementAt(i).GetX() +" " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
+                    // Toast.makeText(this, "P Location gotten :" + Players.elementAt(i).GetX() + " " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
 
                 }
             }
 
             for (int i = 0; i < Capturepoints.size(); i++) {
-                mMap.addCircle(new CircleOptions()
-                        .center(new LatLng(Capturepoints.elementAt(i).GetX(), Capturepoints.elementAt(i).GetY()))
-                        .radius(10000)
-                        .strokeColor(android.R.color.black)
-                        .strokeWidth(5)
-                        .fillColor(Color.argb(200, 180, 180, 255)));
+                if (!Capturepoints.elementAt(i).GetCaptured()) {
+                    mMap.addCircle(new CircleOptions()
+                            .center(new LatLng(Capturepoints.elementAt(i).GetX(), Capturepoints.elementAt(i).GetY()))
+                            .radius(radius)
+                            .strokeColor(android.R.color.black)
+                            .strokeWidth(5)
+                            .fillColor(Color.argb(200, 180, 180, 255)));
 
-                Toast.makeText(this, "C Location gotten :" + Capturepoints.elementAt(i).GetX() +" " + Capturepoints.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
 
+                    // Toast.makeText(this, "C Location gotten :" + Capturepoints.elementAt(i).GetX() + " " + Capturepoints.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
 
+    public void CheckHits(double accuracyMod) //check if player collides with point
+    {
 
+        for (int i = 0; i < Players.size(); i++) {
+
+            for (int j = 0; j < Capturepoints.size(); j++) {
+                float[] dist = new float[4];
+               Location.distanceBetween(Capturepoints.elementAt(j).GetX(),Capturepoints.elementAt(j).GetY(),Players.elementAt(i).GetX(), Players.elementAt(i).GetY(),dist );
+
+                if (dist[0] < accuracyMod) {
+                    if (!Capturepoints.elementAt(j).GetCaptured()) {
+                        Capturepoints.elementAt(j).Capture();
+
+                        if (Players.elementAt(i).GetIsMe()) {
+                            Toast.makeText(this,"Point "+ Capturepoints.elementAt(j).GetIndex()+" Captured" , Toast.LENGTH_LONG).show();
+                            Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+                            // Vibrate for 500 milliseconds
+                            v.vibrate(500);
+                            // App.Mainuser.Score += 1;
+                            // App.Mainuser.WeeklyScore += 1;
+                            // App.Mainuser.DayScore += 1;
+                            //help on first try
+
+                            // if (App.Mainuser.Score <= 1)
+                            // {
+                            //      MessageBox.Show("Good! Captured circles turn green");
+                            // }
+                        }
+
+
+                    }
+                }
+            }
+
+
+        }
+
+    }//end checkhits
+
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+        RefreshMap();
+        return true;
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(MotionEvent e) {
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetX(),
+                                Players.elementAt(0).GetY()),
+                        (float) (17f / Math.pow(radius / 10, 0.15))
+                )));
+        RefreshMap();
+        return true;
+    }
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        return false;
+    }
 }

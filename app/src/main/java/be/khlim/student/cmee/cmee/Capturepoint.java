@@ -9,7 +9,7 @@ import com.google.android.gms.maps.model.LatLng;
  */
 public class Capturepoint extends Point{
 
-    private int index;
+    private int index = 0;
     private boolean captured;
     private LatLng loc_;
 
@@ -28,6 +28,7 @@ public class Capturepoint extends Point{
 
     public double GetX (){ return loc_.longitude; }
     public double GetY () { return loc_.latitude; }
+    public LatLng GetDistanceTo () { return loc_; }
 
     public boolean GetCaptured () { return captured; }
 
