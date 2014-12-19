@@ -192,8 +192,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
                     double tmpX, tmpY;
                     // for extra randomness
-                    //rnd is used for x and wether y is substracted or added
-                    //rnd2 is used for y and wether x is substracted or added
+                    //rnd is used for x and whether y is subtracted or added
+                    //rnd2 is used for y and whether x is subtracted or added
                     //This may cause some predictable patterns but oh well
                     // X = longitude, Y = latitude
 
@@ -266,7 +266,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                             .icon(BitmapDescriptorFactory.fromBitmap(bhalfsize))
                             .anchor(center, center)
                             .position(new LatLng(Players.elementAt(i).GetX(), Players.elementAt(i).GetY())));
-                    //Toast.makeText(this, "Location gotten :" +Players.elementAt(i).GetX() +" " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "P Location gotten :" +Players.elementAt(i).GetX() +" " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
 
                 }
             }
@@ -279,7 +279,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                         .strokeWidth(5)
                         .fillColor(Color.argb(200, 180, 180, 255)));
 
-                Toast.makeText(this, "Location gotten :" +Capturepoints.elementAt(i).GetX() +" " + Capturepoints.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "C Location gotten :" + Capturepoints.elementAt(i).GetX() +" " + Capturepoints.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
 
             }
         }
