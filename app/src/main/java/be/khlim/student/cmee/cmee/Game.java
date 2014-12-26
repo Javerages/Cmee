@@ -7,6 +7,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.Settings;
@@ -30,6 +32,18 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener,  GoogleApiClient.ConnectionCallbacks,
@@ -164,25 +178,26 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
      */
     private void setUpMap() {
         if (mMap != null) {
+                mMap.getUiSettings().setMapToolbarEnabled(false);
+            mMap.getUiSettings().setZoomGesturesEnabled(false);
+            mMap.getUiSettings().setZoomControlsEnabled(true);
             Players.add(new Player(Player.Teams.None, null, true));
+
             if (mGoogleApiClient.isConnected()) {
                 RefreshMap();
             }
         }
     }
 
-    private void DoubleTap(){
-
-    }
-
     @Override
     public void onConnected(Bundle bundle) {
+
         if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, locReq, this);
             // Display the connection status
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
             // If already requested, start periodic updates #error#
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient, locReq, this);
         }
     }
 
@@ -195,6 +210,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         playing = false;
+        Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -215,7 +231,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
             if (Capturepoints.size() < 1 && !playing) {
                 for (int i = 0; i <= nrOfPlayers; i++) {
-                    // initialise players *to be added* (maybe in a download_finished event)
+                    // initialise players *to be added when multiplayer*
                 }
 
                 //add random points to capture
@@ -279,6 +295,14 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             else{
                 Toast.makeText(this, "Can't capture due to poor connection (acc = " + acc +")", Toast.LENGTH_SHORT).show();
             }
+
+            ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            NetworkInfo internet = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+            if (!internet.isConnected()) {
+                Toast.makeText(this, "The map requires an internet connection", Toast.LENGTH_SHORT).show();
+            }
+
             RefreshMap();
             playing = true;
         }
@@ -334,7 +358,11 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 if (dist[0] < accuracyMod) {
                     if (!Capturepoints.elementAt(j).GetCaptured()) {
                         Capturepoints.elementAt(j).Capture();
-
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                                CameraPosition.fromLatLngZoom(new LatLng(Capturepoints.elementAt(j).GetX(),
+                                                Capturepoints.elementAt(j).GetY()),
+                                        (float) (17f / Math.pow(radius / 10, 0.15))
+                                )));
                         if (Players.elementAt(i).GetIsMe()) {
                             Toast.makeText(this,"Point "+ Capturepoints.elementAt(j).GetIndex()+" Captured" , Toast.LENGTH_LONG).show();
                             Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
@@ -362,9 +390,45 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     }//end checkhits
 
 
+    //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
+    //Uri URI = new Uri("http://cmee.yzi.me/index.php/app/sethighscores", UriKind.Absolute);s
+    public void postData() {
+        // Create a new HttpClient and Post Header
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpPost httppost = new HttpPost("http://cmee.yzi.me/index.php/app/sethighscores");
+
+        try {
+            // Add your data
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+            nameValuePairs.add(new BasicNameValuePair("id", "12345"));
+            nameValuePairs.add(new BasicNameValuePair("stringdata", "AndDev is Cool!"));
+            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+            // Execute HTTP Post Request
+            HttpResponse response = httpclient.execute(httppost);
+
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+        }
+    }
+
+    /*
+    Gestures
+    */
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        this.mDetector.onTouchEvent(event);
+        Toast.makeText(this,"Touch" , Toast.LENGTH_LONG).show();
+        // Be sure to call the superclass implementation
+        return super.onTouchEvent(event);
+    }
+
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
         RefreshMap();
+        Toast.makeText(this,"Tap" , Toast.LENGTH_LONG).show();
         return true;
     }
 
@@ -386,7 +450,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public boolean onDown(MotionEvent e) {
-        return false;
+        return true;
     }
 
     @Override
@@ -406,7 +470,11 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public void onLongPress(MotionEvent e) {
-
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetX(),
+                                Players.elementAt(0).GetY()),
+                        (float) (17f / Math.pow(radius / 10, 0.15))
+                )));
     }
 
     @Override

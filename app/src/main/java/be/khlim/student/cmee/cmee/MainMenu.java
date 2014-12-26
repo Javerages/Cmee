@@ -54,6 +54,12 @@ public class MainMenu extends Activity {
         startActivity(intent);
     }
 
+    public void GoSettings(View view){
+        Intent intent = new Intent(this, Settings.class);
+        //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+        startActivity(intent);
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */

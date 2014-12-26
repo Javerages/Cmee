@@ -22,5 +22,14 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
             android:onClick="GoPlay"/>
+
+        <Button
+            android:layout_width="204dp"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:id="@+id/buttonSettings"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.03"
+            android:onClick="GoSettings"/>
     </LinearLayout>
 </RelativeLayout>

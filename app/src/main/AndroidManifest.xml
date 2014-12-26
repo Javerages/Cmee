@@ -51,8 +51,16 @@
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
         <activity
-            android:name=".Higscores"
+            android:name=".Highscores"
             android:label="@string/title_activity_higscores" >
+        </activity>
+        <activity
+            android:name=".Settings"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".Game" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="be.khlim.student.cmee.cmee.Game" />
         </activity>
     </application>
 
