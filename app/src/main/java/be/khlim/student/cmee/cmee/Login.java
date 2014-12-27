@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Application;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.CursorLoader;
@@ -26,6 +27,25 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,7 +171,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 8;
+        return password.length() > 5;
     }
 
     /**
@@ -260,12 +280,10 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
+                AskServer(mEmail, mPassword);
+            }catch (IOException e) {
                 return false;
             }
 
@@ -299,6 +317,45 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             mAuthTask = null;
             showProgress(false);
         }
+
+        public void AskServer( String username,String pass) throws IOException {
+            // Instantiate the Request.
+            HttpClient req  = new DefaultHttpClient();
+            HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/login");
+            param.addHeader("username",username);
+            param.addHeader("password",pass);
+
+            HttpResponse response = req.execute(param);
+
+            StatusLine statusLine = response.getStatusLine();
+            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+                final App globalVariable = (App) getApplicationContext();
+
+                if (isInteger(responseString)) {
+                    globalVariable.ObjMainuser().SetUserid(Integer.parseInt(responseString));
+                }
+            } else{
+                //Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        }
+
+        public boolean isInteger(String s) {
+            try {
+                Integer.parseInt(s);
+            } catch(NumberFormatException e) {
+                return false;
+            }
+            // only got here if we didn't return false
+            return true;
+        }
+
+
     }
 }
 

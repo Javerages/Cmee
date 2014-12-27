@@ -60,6 +60,11 @@ public class MainMenu extends Activity {
         startActivity(intent);
     }
 
+    public void GoLogin(View view){
+        Intent intent = new Intent(this, Login.class);
+        //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+        startActivity(intent);
+    }
     /**
      * A placeholder fragment containing a simple view.
      */
