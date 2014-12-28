@@ -57,6 +57,7 @@ public class NumberPickerPreference extends DialogPreference {
            def = Integer.parseInt(defaultValue.toString());
         }
         if ( restorePersistedValue ) {
+
             this.initialValue = def;
         }
         else this.initialValue = (Integer)defaultValue;
