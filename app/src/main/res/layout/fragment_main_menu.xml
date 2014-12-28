@@ -39,5 +39,16 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
             android:onClick="GoLogin"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text=""
+            android:id="@+id/loggedIn"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.03"
+            android:padding="@dimen/abc_action_bar_stacked_max_height"
+            android:visibility="invisible" />
     </LinearLayout>
 </RelativeLayout>

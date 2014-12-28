@@ -4,9 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Application;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.ContentResolver;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -26,23 +24,17 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -55,18 +47,12 @@ import java.util.List;
  */
 public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
-
+    private UserLoginTask mAuthLoginTask = null;
+    private UserRegisterTask mAuthRegisterTask = null;
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -90,6 +76,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
                     attemptLogin();
                     return true;
                 }
+
                 return false;
             }
         });
@@ -99,6 +86,14 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             @Override
             public void onClick(View view) {
                 attemptLogin();
+            }
+        });
+
+        Button mEmailRegisterButton = (Button) findViewById(R.id.email_register_button);
+        mEmailRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                attemptRegister();
             }
         });
 
@@ -117,7 +112,8 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
      * errors are presented and no actual login attempt is made.
      */
     public void attemptLogin() {
-        if (mAuthTask != null) {
+        if (mAuthLoginTask != null) {
+            Toast.makeText(getApplicationContext(),"Please be patient", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -159,8 +155,57 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            mAuthLoginTask = new UserLoginTask(email, password);
+            mAuthLoginTask.execute((Void) null);
+        }
+    }
+
+    public void attemptRegister() {
+        if (mAuthRegisterTask != null) {
+            Toast.makeText(getApplicationContext(),"Please be patient", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reset errors.
+        mEmailView.setError(null);
+        mPasswordView.setError(null);
+
+        // Store values at the time of the login attempt.
+        String email = mEmailView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        boolean cancel = false;
+        View focusView = null;
+
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            mPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(email)) {
+            mEmailView.setError(getString(R.string.error_field_required));
+            focusView = mEmailView;
+            cancel = true;
+        } else if (!isEmailValid(email)) {
+            mEmailView.setError(getString(R.string.error_invalid_email));
+            focusView = mEmailView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+            mAuthRegisterTask = new UserRegisterTask(email, password);
+            mAuthRegisterTask.execute((Void) null);
         }
     }
 
@@ -280,68 +325,155 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-
+            Boolean success;
             try {
-                AskServer(mEmail, mPassword);
-            }catch (IOException e) {
-                return false;
+                success = AskServer(mEmail, mPassword);
+            } catch (IOException e) {
+                success = false;
             }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
+            return success;
         }
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
+            mAuthLoginTask = null;
             showProgress(false);
 
             if (success) {
                 finish();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+
             }
         }
 
         @Override
         protected void onCancelled() {
-            mAuthTask = null;
+            mAuthLoginTask = null;
             showProgress(false);
         }
 
-        public void AskServer( String username,String pass) throws IOException {
+        public boolean AskServer(String username, String pass) throws IOException {
+
+            Boolean success = false;
             // Instantiate the Request.
-            HttpClient req  = new DefaultHttpClient();
+            HttpClient req = new DefaultHttpClient();
             HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/login");
-            param.addHeader("username",username);
-            param.addHeader("password",pass);
+            //param.addHeader("username",username);
+            //param.addHeader("password",pass);
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+            nameValuePairs.add(new BasicNameValuePair("username", username));
+            nameValuePairs.add(new BasicNameValuePair("password", pass));
+            param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
             HttpResponse response = req.execute(param);
 
             StatusLine statusLine = response.getStatusLine();
-            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 response.getEntity().writeTo(out);
                 out.close();
                 String responseString = out.toString();
-                final App globalVariable = (App) getApplicationContext();
+                App globalVariable = (App) getApplicationContext();
 
-                if (isInteger(responseString)) {
-                    globalVariable.ObjMainuser().SetUserid(Integer.parseInt(responseString));
+                if (isInteger(responseString)) {//mProgressView.post();
+                    globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
+                    //TODO: Check if user has score online
+                    success = true;
+                    SendToast("Logged in");
+                } else {
+                    SendToast(responseString);
                 }
-            } else{
+            } else {
+                success = false;
                 //Closes the connection.
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
+            }
+
+            return success;
+        }
+    }
+        /**
+         * Represents an asynchronous login/registration task used to authenticate
+         * the user.
+         */
+        public class UserRegisterTask extends AsyncTask<Void, Void, Boolean> {
+
+            private final String mEmail;
+            private final String mPassword;
+
+            UserRegisterTask(String email, String password) {
+                mEmail = email;
+                mPassword = password;
+            }
+
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                Boolean success;
+                try {
+                    success = AskServer(mEmail, mPassword);
+                }catch (IOException e) {
+                    success = false;
+                }
+                return success;
+            }
+
+            @Override
+            protected void onPostExecute(final Boolean success) {
+                mAuthRegisterTask = null;
+                showProgress(false);
+
+                if (success) {
+                    finish();
+                } else {
+
+                }
+            }
+
+            @Override
+            protected void onCancelled() {
+                mAuthRegisterTask = null;
+                showProgress(false);
+            }
+
+            public boolean AskServer( String username,String pass) throws IOException {
+
+                Boolean success = false;
+                // Instantiate the Request.
+                HttpClient req  = new DefaultHttpClient();
+                HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/register");
+                //param.addHeader("username",username);
+                //param.addHeader("password",pass);
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                nameValuePairs.add(new BasicNameValuePair("username",username));
+                nameValuePairs.add(new BasicNameValuePair("password",pass));
+                param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                HttpResponse response = req.execute(param);
+
+                StatusLine statusLine = response.getStatusLine();
+                if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    response.getEntity().writeTo(out);
+                    out.close();
+                    String responseString = out.toString();
+                    App globalVariable = (App) getApplicationContext();
+
+                    if (isInteger(responseString)) {//mProgressView.post();
+                        globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
+                        success = true;
+                        SendToast("Registered");
+                    }else{
+                        SendToast(responseString);
+                    }
+                } else{
+                    success = false;
+                    //Closes the connection.
+                    response.getEntity().getContent().close();
+                    throw new IOException(statusLine.getReasonPhrase());
+                }
+
+                return success;
             }
         }
 
@@ -355,8 +487,17 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             return true;
         }
 
+        private void SendToast(final String message){
+            mProgressView.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(),message, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
 
-    }
+
+
 }
 
 

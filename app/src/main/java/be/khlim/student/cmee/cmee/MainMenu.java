@@ -11,7 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
-
+import android.widget.TextView;
 
 
 public class MainMenu extends Activity {
@@ -25,8 +25,34 @@ public class MainMenu extends Activity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
+
     }
 
+
+    @Override
+    protected void onPause(){
+    super.onPause();
+        App globalVariable = (App) getApplicationContext();
+        globalVariable.storage.edit().putInt("Score",globalVariable.MainUser().GetScore());
+        globalVariable.storage.edit().putInt("Userid",globalVariable.MainUser().GetUserid());
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        App globalVariable = (App) getApplicationContext();
+        TextView mloginlbl = (TextView) findViewById(R.id.loggedIn);
+        mloginlbl.setText("");
+        if(globalVariable.MainUser().GetUserid() >= 0){
+            mloginlbl.setVisibility(View.VISIBLE);
+            mloginlbl.append("Logged in ");
+        }
+        if(globalVariable.MainUser().GetScore() >= 0){
+            mloginlbl.setVisibility(View.VISIBLE);
+            mloginlbl.append("Score: "+ globalVariable.MainUser().GetScore());
+        }
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

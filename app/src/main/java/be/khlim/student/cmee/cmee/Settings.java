@@ -102,10 +102,10 @@ public class Settings extends PreferenceActivity {
         addPreferencesFromResource(R.xml.pref_general);
 
         // Add 'notifications' preferences, and a corresponding header.
-        PreferenceCategory fakeHeader = new PreferenceCategory(this);
+       /* PreferenceCategory fakeHeader = new PreferenceCategory(this);
         fakeHeader.setTitle(R.string.pref_header_notifications);
         getPreferenceScreen().addPreference(fakeHeader);
-        addPreferencesFromResource(R.xml.pref_notification);
+        addPreferencesFromResource(R.xml.pref_notification);*/
 
         // Add 'data and sync' preferences, and a corresponding header.
         /*fakeHeader = new PreferenceCategory(this);
@@ -117,7 +117,8 @@ public class Settings extends PreferenceActivity {
         // their values. When their values change, their summaries are updated
         // to reflect the new value, per the Android Design guidelines.
         bindPreferenceSummaryToValue(findPreference("example_text"));
-        bindPreferenceSummaryToValue(findPreference("radius_list"));
+        bindPreferenceSummaryToValue(findPreference("NrOfPoints"));
+        bindPreferenceSummaryToValue(findPreference("radius"));
 
     }
 
@@ -251,7 +252,8 @@ public class Settings extends PreferenceActivity {
             // updated to reflect the new value, per the Android Design
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("radius_list"));
+            bindPreferenceSummaryToValue(findPreference("NrOfPoints"));
+            bindPreferenceSummaryToValue(findPreference("radius"));
         }
     }
 

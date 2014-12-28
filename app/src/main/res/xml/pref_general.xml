@@ -12,13 +12,20 @@
         android:singleLine="true"
         android:maxLines="1" />
 
+
+    <be.khlim.student.cmee.cmee.NumberPickerPreference
+        android:key="NrOfPoints"
+        android:title="#Points"
+        android:defaultValue="10"
+        />
+
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
     <ListPreference
-        android:key="radius_list"
+        android:key="radius"
         android:title="@string/pref_radius"
-        android:defaultValue="-1"
+        android:defaultValue="10"
         android:entries="@array/pref_radius_list_titles"
         android:entryValues="@array/pref_radius_list_values"
         android:negativeButtonText="@null"
