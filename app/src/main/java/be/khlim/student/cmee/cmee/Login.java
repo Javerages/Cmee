@@ -7,10 +7,10 @@ import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -113,7 +113,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
      */
     public void attemptLogin() {
         if (mAuthLoginTask != null) {
-            Toast.makeText(getApplicationContext(),"Please be patient", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Please be patient", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -162,7 +162,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
     public void attemptRegister() {
         if (mAuthRegisterTask != null) {
-            Toast.makeText(getApplicationContext(),"Please be patient", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Please be patient", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -289,6 +289,34 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
     }
 
+    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
+        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(this,
+                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
+
+        mEmailView.setAdapter(adapter);
+    }
+
+    public boolean isInteger(String s) {
+        try {
+            Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        // only got here if we didn't return false
+        return true;
+    }
+
+    private void SendToast(final String message) {
+        mProgressView.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private interface ProfileQuery {
         String[] PROJECTION = {
                 ContactsContract.CommonDataKinds.Email.ADDRESS,
@@ -297,16 +325,6 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
         int ADDRESS = 0;
         int IS_PRIMARY = 1;
-    }
-
-
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mEmailView.setAdapter(adapter);
     }
 
     /**
@@ -340,6 +358,11 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             showProgress(false);
 
             if (success) {
+                App globalVariable = (App) getApplicationContext();
+                globalVariable.MainUser().SetUsername(mEmail.substring(0, mEmail.indexOf('@')));
+                globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
+                globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
+                SendToast("Logged in");
                 finish();
             } else {
 
@@ -379,7 +402,6 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
                     globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
                     //TODO: Check if user has score online
                     success = true;
-                    SendToast("Logged in");
                 } else {
                     SendToast(responseString);
                 }
@@ -393,109 +415,94 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             return success;
         }
     }
-        /**
-         * Represents an asynchronous login/registration task used to authenticate
-         * the user.
-         */
-        public class UserRegisterTask extends AsyncTask<Void, Void, Boolean> {
 
-            private final String mEmail;
-            private final String mPassword;
+    /**
+     * Represents an asynchronous login/registration task used to authenticate
+     * the user.
+     */
+    public class UserRegisterTask extends AsyncTask<Void, Void, Boolean> {
 
-            UserRegisterTask(String email, String password) {
-                mEmail = email;
-                mPassword = password;
-            }
+        private final String mEmail;
+        private final String mPassword;
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
-                Boolean success;
-                try {
-                    success = AskServer(mEmail, mPassword);
-                }catch (IOException e) {
-                    success = false;
-                }
-                return success;
-            }
-
-            @Override
-            protected void onPostExecute(final Boolean success) {
-                mAuthRegisterTask = null;
-                showProgress(false);
-
-                if (success) {
-                    finish();
-                } else {
-
-                }
-            }
-
-            @Override
-            protected void onCancelled() {
-                mAuthRegisterTask = null;
-                showProgress(false);
-            }
-
-            public boolean AskServer( String username,String pass) throws IOException {
-
-                Boolean success = false;
-                // Instantiate the Request.
-                HttpClient req  = new DefaultHttpClient();
-                HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/register");
-                //param.addHeader("username",username);
-                //param.addHeader("password",pass);
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-                nameValuePairs.add(new BasicNameValuePair("username",username));
-                nameValuePairs.add(new BasicNameValuePair("password",pass));
-                param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                HttpResponse response = req.execute(param);
-
-                StatusLine statusLine = response.getStatusLine();
-                if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    response.getEntity().writeTo(out);
-                    out.close();
-                    String responseString = out.toString();
-                    App globalVariable = (App) getApplicationContext();
-
-                    if (isInteger(responseString)) {//mProgressView.post();
-                        globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
-                        success = true;
-                        SendToast("Registered");
-                    }else{
-                        SendToast(responseString);
-                    }
-                } else{
-                    success = false;
-                    //Closes the connection.
-                    response.getEntity().getContent().close();
-                    throw new IOException(statusLine.getReasonPhrase());
-                }
-
-                return success;
-            }
+        UserRegisterTask(String email, String password) {
+            mEmail = email;
+            mPassword = password;
         }
 
-        public boolean isInteger(String s) {
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            Boolean success;
             try {
-                Integer.parseInt(s);
-            } catch(NumberFormatException e) {
-                return false;
+                success = AskServer(mEmail, mPassword);
+            } catch (IOException e) {
+                success = false;
             }
-            // only got here if we didn't return false
-            return true;
+            return success;
         }
 
-        private void SendToast(final String message){
-            mProgressView.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(),message, Toast.LENGTH_LONG).show();
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            mAuthRegisterTask = null;
+            showProgress(false);
+
+            if (success) {
+                App globalVariable = (App) getApplicationContext();
+                globalVariable.MainUser().SetUsername(mEmail.substring(0, mEmail.indexOf('@')));
+                globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
+                globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
+                SendToast("Registered");
+                finish();
+            } else {
+
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mAuthRegisterTask = null;
+            showProgress(false);
+        }
+
+        public boolean AskServer(String username, String pass) throws IOException {
+
+            Boolean success = false;
+            // Instantiate the Request.
+            HttpClient req = new DefaultHttpClient();
+            HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/register");
+            //param.addHeader("username",username);
+            //param.addHeader("password",pass);
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+            nameValuePairs.add(new BasicNameValuePair("username", username));
+            nameValuePairs.add(new BasicNameValuePair("password", pass));
+            param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+            HttpResponse response = req.execute(param);
+
+            StatusLine statusLine = response.getStatusLine();
+            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+                App globalVariable = (App) getApplicationContext();
+
+                if (isInteger(responseString)) {//mProgressView.post();
+                    globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
+                    success = true;
+                } else {
+                    SendToast(responseString);
                 }
-            });
-        }
+            } else {
+                success = false;
+                //Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
 
+            return success;
+        }
+    }
 
 
 }

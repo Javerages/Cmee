@@ -1,6 +1,7 @@
 package be.khlim.student.cmee.cmee;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 
@@ -34,7 +35,17 @@ public class NumberPickerPreference extends DialogPreference {
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
         this.picker = (NumberPicker)view.findViewById(R.id.pref_num_picker);
-        picker.setMaxValue(20);
+        SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
+        int maxPoints = Integer.parseInt(preferences.getString("radius", "1"));
+
+        if (maxPoints < 100){
+            maxPoints = maxPoints/2;
+        }else
+        {
+            maxPoints = 75;
+        }
+
+        picker.setMaxValue(maxPoints);
         picker.setMinValue(1);
         if ( this.initialValue != null ) picker.setValue(initialValue);
     }
@@ -52,15 +63,14 @@ public class NumberPickerPreference extends DialogPreference {
     @Override
     protected void onSetInitialValue(boolean restorePersistedValue,
                                      Object defaultValue) {
-        int def = 1;
-        if (defaultValue != null) {
-           def = Integer.parseInt(defaultValue.toString());
+        if (restorePersistedValue) {
+            // Restore existing state
+            initialValue = Integer.parseInt(this.getPersistedString("1"));
+        } else {
+            // Set default state from the XML attribute
+            initialValue = (Integer) defaultValue;
+            persistInt(1);
         }
-        if ( restorePersistedValue ) {
-
-            this.initialValue = def;
-        }
-        else this.initialValue = (Integer)defaultValue;
     }
 
     @Override

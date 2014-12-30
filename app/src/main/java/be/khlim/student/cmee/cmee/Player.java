@@ -30,8 +30,8 @@ public class Player extends Point {
 
 
     public boolean GetIsMe()  { return me; }
-    public double GetX () { return loc_.getLatitude(); }
-    public double GetY () { return loc_.getLongitude(); }
+    public double GetX () { return loc_.getLongitude(); }
+    public double GetY () {return loc_.getLatitude();  }
 
     public Location GetLocation() { return loc_; }
     public void SetLocation(Location loc) { loc_ = loc; }

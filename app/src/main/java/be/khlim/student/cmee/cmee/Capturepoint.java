@@ -17,7 +17,7 @@ public class Capturepoint extends Point{
     {
         this.index = index;
         captured = false;
-        loc_ = new LatLng(x,y);
+        loc_ = new LatLng(y,x);
     }
 
     //*********************//
@@ -30,7 +30,7 @@ public class Capturepoint extends Point{
     public double GetY () { return loc_.latitude; }
     public LatLng GetDistanceTo () { return loc_; }
 
-    public boolean GetCaptured () { return captured; }
+    public boolean Captured() { return captured; }
 
     //*********************//
     // All extra functions://

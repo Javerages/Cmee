@@ -28,15 +28,6 @@ public class MainMenu extends Activity {
 
     }
 
-
-    @Override
-    protected void onPause(){
-    super.onPause();
-        App globalVariable = (App) getApplicationContext();
-        globalVariable.storage.edit().putInt("Score",globalVariable.MainUser().GetScore());
-        globalVariable.storage.edit().putInt("Userid",globalVariable.MainUser().GetUserid());
-    }
-
     @Override
     protected void onResume(){
         super.onResume();
@@ -45,15 +36,21 @@ public class MainMenu extends Activity {
         mloginlbl.setText("");
         if(globalVariable.MainUser().GetUserid() >= 0){
             mloginlbl.setVisibility(View.VISIBLE);
-            mloginlbl.append("Logged in ");
+            mloginlbl.setText("Logged in as " + globalVariable.MainUser().GetUsername());
         }
+
+        TextView mScoreView = (TextView) findViewById(R.id.Score);
         if(globalVariable.MainUser().GetScore() >= 0){
-            mloginlbl.setVisibility(View.VISIBLE);
-            mloginlbl.append("Score: "+ globalVariable.MainUser().GetScore());
+            mScoreView.setVisibility(View.VISIBLE);
+            mScoreView.setText("Score: "+ globalVariable.MainUser().GetScore());
         }
 
     }
 
+    @Override
+    protected void onPause(){
+        super.onPause();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

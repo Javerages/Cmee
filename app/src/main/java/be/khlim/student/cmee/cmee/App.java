@@ -23,6 +23,7 @@ public class App extends Application{
         //Toast.makeText(this, "Test toast", Toast.LENGTH_SHORT).show();
         MainUser().SetScore(storage.getInt("Score", 0));
         MainUser().SetUserid(storage.getInt("Userid", -1));
+        MainUser().SetUsername(storage.getString("Username", "Please log in"));
     }
 
        public User MainUser()
