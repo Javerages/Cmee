@@ -25,7 +25,7 @@
     <be.khlim.student.cmee.cmee.NumberPickerPreference
         android:key="NrOfPoints"
         android:title="#Points"
-        android:defaultValue="5"
+        android:defaultValue="@string/pref_default_Points"
         />
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to

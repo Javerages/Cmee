@@ -94,8 +94,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         radius = Integer.parseInt(preferences.getString("radius", "10"));
         nrOfPoints = Integer.parseInt(preferences.getString("NrOfPoints", "5"));
 
-
-        Pointsize = Math.pow(radius, 0.8f) * 4;
+        Pointsize = Math.pow(radius, 0.7f) * 4;
         LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Toast.makeText(this, "Pls enable gps", Toast.LENGTH_LONG).show();
@@ -326,9 +325,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
             double acc = location.getAccuracy();
             if (acc < 30) {
-                CheckHits(5 + Pointsize);
+                CheckHits(Pointsize);
             } else {
-                Toast.makeText(this, "Can't capture due to poor connection (acc = " + acc + ")", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Poor connection (acc = " + acc + ")", Toast.LENGTH_SHORT).show();
             }
 
             RefreshMap();
@@ -488,7 +487,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (velocityX / velocityY > 1 && velocityX / velocityY < 100) { //Cheat
+        if (velocityX / velocityY > 1 && velocityX / velocityY < 50 && velocityX > 2200) { //Cheat
             Captureall();
         }
         return false;

@@ -34,7 +34,7 @@
         <Button
             android:layout_width="204dp"
             android:layout_height="wrap_content"
-            android:text="Login"
+            android:text="@string/LoginButtonText"
             android:id="@+id/buttonLogin"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
