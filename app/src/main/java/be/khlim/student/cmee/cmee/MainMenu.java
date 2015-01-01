@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -12,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
 import android.widget.TextView;
+
+import java.net.URI;
 
 
 public class MainMenu extends Activity {
@@ -87,6 +90,10 @@ public class MainMenu extends Activity {
         Intent intent = new Intent(this, Login.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
         startActivity(intent);
+    }
+
+    public void GoHighscores(View view){
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://cmee.yzi.me/index.php/app/highscores")));
     }
     /**
      * A placeholder fragment containing a simple view.

@@ -36,7 +36,7 @@ public class NumberPickerPreference extends DialogPreference {
         super.onBindDialogView(view);
         this.picker = (NumberPicker)view.findViewById(R.id.pref_num_picker);
         SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
-        int maxPoints = Integer.parseInt(preferences.getString("radius", "1"));
+        int maxPoints = Integer.parseInt(preferences.getString("radius", "10"));
 
         if (maxPoints < 100){
             maxPoints = maxPoints/2;
@@ -56,7 +56,7 @@ public class NumberPickerPreference extends DialogPreference {
         if ( which == DialogInterface.BUTTON_POSITIVE ) {
             this.initialValue = picker.getValue();
             persistString(String.valueOf(picker.getValue()));
-            callChangeListener( initialValue );
+            callChangeListener( picker.getValue() );
         }
     }
 

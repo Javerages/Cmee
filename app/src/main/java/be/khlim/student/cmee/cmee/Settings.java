@@ -235,6 +235,7 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
                 this.onPreferenceChange(findPreference("NrOfPoints"),nrOfPoints);
             }
         }
+
         return true;
     }
 

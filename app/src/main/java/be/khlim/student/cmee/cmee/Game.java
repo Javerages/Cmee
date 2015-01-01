@@ -159,6 +159,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 Postscore = new PostScoreTask();
                 Postscore.execute("all");
             }
+        }else{
+            Toast.makeText(getApplicationContext(),"Log in to upload highscore",Toast.LENGTH_SHORT);
         }
 
         super.onPause();
@@ -201,7 +203,6 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         if (mMap != null) {
             this.mMap.setOnMapClickListener(this);
             mMap.getUiSettings().setMapToolbarEnabled(false);
-            mMap.getUiSettings().setZoomGesturesEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
             mMap.getUiSettings().setCompassEnabled(true);
             mMap.getUiSettings().setZoomControlsEnabled(true);
@@ -421,8 +422,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        this.mDetector.onTouchEvent(ev);
         super.dispatchTouchEvent(ev);
+        this.mDetector.onTouchEvent(ev);
         //super.onTouchEvent(ev);
         return true;
     }

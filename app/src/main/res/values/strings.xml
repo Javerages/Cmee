@@ -5,11 +5,10 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_game">Playing</string>
-    <string name="title_activity_higscores">Higscores</string>
     <string name="title_section1">Section 1</string>
     <string name="title_section2">Section 2</string>
     <string name="title_section3">Section 3</string>
     <string name="title_activity_test_map_active">Map</string>
     <string name="LoginButtonText">Login</string>
-
+    <string name="HighscoreButtonText">Highscores</string>
 </resources>
