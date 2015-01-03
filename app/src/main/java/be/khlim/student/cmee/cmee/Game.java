@@ -69,7 +69,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
     boolean playing = false;
     PostScoreTask Postscore = null;
-    private int nrOfPoints = 10;
+    private int nrOfPoints = 5;
     private int nrOfPlayers = 10;
     private int radius = 10;
     private double Pointsize = 10;

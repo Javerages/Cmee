@@ -215,7 +215,7 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
 
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(preference.getContext());
             int radius = Integer.parseInt(stringValue);
-            int nrOfPoints = Integer.parseInt(preferences.getString("NrOfPoints", "1"));
+            int nrOfPoints = Integer.parseInt(preferences.getString("NrOfPoints", "5"));
 
             int maxPoints = 1;
             if (radius <= 100) {
