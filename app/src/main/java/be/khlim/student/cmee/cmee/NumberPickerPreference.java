@@ -69,7 +69,7 @@ public class NumberPickerPreference extends DialogPreference {
         } else {
             // Set default state from the XML attribute
             initialValue = (Integer) defaultValue;
-            persistString("1");
+            persistString(initialValue.toString());
         }
     }
 

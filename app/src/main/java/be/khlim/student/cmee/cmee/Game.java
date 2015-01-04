@@ -46,7 +46,9 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -154,6 +156,10 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     protected void onPause() {
         App globalVariable = (App) getApplicationContext();
         globalVariable.storage.edit().putInt("Score", globalVariable.MainUser().GetScore()).commit();
+        globalVariable.storage.edit().putInt("ScoreDay", globalVariable.MainUser().GetScore()).commit();
+        globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScore()).commit();
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        globalVariable.storage.edit().putString("lastPlayDate",date ).commit();
         if (globalVariable.MainUser().GetUserid() >= 0) {
             if (Postscore == null) {
                 Postscore = new PostScoreTask();
@@ -488,29 +494,22 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (velocityX / velocityY > 1 && velocityX / velocityY < 50 && velocityX > 2200) { //Cheat
+        if (velocityX / velocityY > 1 && velocityX / velocityY < 100 && velocityX > 1000) { //Cheat
             Captureall();
         }
         return false;
     }
 
     private void Captureall() {
+        if (BuildConfig.DEBUG) {
+            Toast.makeText(this, "Cheat", Toast.LENGTH_SHORT).show();
         for (int j = 0; j < Capturepoints.size(); j++) {
-            if (BuildConfig.DEBUG) {
-                Toast.makeText(getApplicationContext(), "Cheat", Toast.LENGTH_SHORT);
                 Capturepoints.elementAt(j).Capture();
             }
         }
     }
 
-    private void SendToast(final String message) {
-        findViewById(R.id.map).post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
+
 
     //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
     //Uri URI = new Uri("http://cmee.yzi.me/index.php/app/sethighscores", UriKind.Absolute);
@@ -532,10 +531,19 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             SendToast(reply);
         }
 
+        private void SendToast(final String message) {
+            findViewById(R.id.container).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
         public void postScore(String type) {
             // Create a new HttpClient and Post Header
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/sethighscores");
+            HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/setAllhighscores");
 
             try {
                 App globalVariable = (App) getApplicationContext();
@@ -544,8 +552,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 // Add your data
                 List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
                 nameValuePairs.add(new BasicNameValuePair("userid", String.valueOf(globalVariable.MainUser().GetUserid())));
-                nameValuePairs.add(new BasicNameValuePair("score", String.valueOf(globalVariable.MainUser().GetScore())));
-                nameValuePairs.add(new BasicNameValuePair("type", type));
+                nameValuePairs.add(new BasicNameValuePair("all", String.valueOf(globalVariable.MainUser().GetScore())));
+                nameValuePairs.add(new BasicNameValuePair("daily", String.valueOf(globalVariable.MainUser().GetScoreDay())));
+                nameValuePairs.add(new BasicNameValuePair("weekly", String.valueOf(globalVariable.MainUser().GetScoreWeek())));
                 Param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
                 // Execute HTTP Post Request
