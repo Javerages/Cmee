@@ -12,12 +12,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -51,6 +53,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
+
+import javax.xml.transform.Result;
 
 public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -156,8 +160,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     protected void onPause() {
         App globalVariable = (App) getApplicationContext();
         globalVariable.storage.edit().putInt("Score", globalVariable.MainUser().GetScore()).commit();
-        globalVariable.storage.edit().putInt("ScoreDay", globalVariable.MainUser().GetScore()).commit();
-        globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScore()).commit();
+        globalVariable.storage.edit().putInt("ScoreDay", globalVariable.MainUser().GetScoreDay()).commit();
+        globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScoreWeek()).commit();
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         globalVariable.storage.edit().putString("lastPlayDate",date ).commit();
         if (globalVariable.MainUser().GetUserid() >= 0) {
@@ -166,7 +170,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 Postscore.execute("all");
             }
         }else{
-            Toast.makeText(getApplicationContext(),"Log in to upload highscore",Toast.LENGTH_SHORT);
+            Toast.makeText(getApplicationContext(),"Log in to upload highscore",Toast.LENGTH_SHORT).show();
         }
 
         super.onPause();
@@ -509,8 +513,6 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         }
     }
 
-
-
     //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
     //Uri URI = new Uri("http://cmee.yzi.me/index.php/app/sethighscores", UriKind.Absolute);
     private class PostScoreTask extends AsyncTask<String, Void, Boolean> {
@@ -527,17 +529,22 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             return true;
         }
 
-        protected void onPostExecute() {
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+
             SendToast(reply);
+            super.onPostExecute(aBoolean);
         }
 
         private void SendToast(final String message) {
-            findViewById(R.id.container).post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-                }
-            });
+
+                    View posted=  findViewById(R.id.map);
+                    posted.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
+                        }
+                    });
         }
 
         public void postScore(String type) {
@@ -567,7 +574,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                     String responseString = out.toString();
                     if (responseString != null) {
                         reply = responseString.toString();
-                    }
+                                            }
                 }
             } catch (ClientProtocolException e) {
                 // TODO Auto-generated catch block

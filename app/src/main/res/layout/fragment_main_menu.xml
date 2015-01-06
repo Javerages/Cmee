@@ -12,7 +12,23 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:weightSum="2"
+        android:layout_centerHorizontal="true">
+
+
+
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView"
+        android:layout_gravity="center_horizontal">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
         android:weightSum="2">
+
+
 
         <Button
             android:layout_width="204dp"
@@ -31,6 +47,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
             android:onClick="GoSettings"/>
+
         <Button
             android:layout_width="204dp"
             android:layout_height="wrap_content"
@@ -39,6 +56,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
             android:onClick="GoLogin"/>
+
         <Button
             android:layout_width="204dp"
             android:layout_height="wrap_content"
@@ -70,5 +88,7 @@
             android:padding="@dimen/abc_action_bar_icon_vertical_padding_material"
             android:visibility="invisible" />
 
+    </LinearLayout>
+    </ScrollView>
     </LinearLayout>
 </RelativeLayout>
