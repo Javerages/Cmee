@@ -68,7 +68,9 @@ public class MainMenu extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            return true;
+            Intent intent = new Intent(this, Settings.class);
+            //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
