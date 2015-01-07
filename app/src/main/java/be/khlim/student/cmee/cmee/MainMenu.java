@@ -5,6 +5,7 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,12 +14,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainMenu extends Activity {
-
+    PostScoreTask Postscore = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +112,16 @@ public class MainMenu extends Activity {
     }
 
     public void GoHighscores(View view){
+        App globalVariable = (App) getApplicationContext();
+        if (globalVariable.MainUser().GetUserid() >= 0) {
+            if (Postscore == null) {
+                Postscore = new PostScoreTask();
+                Postscore.execute("all");
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
+        }
+
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://cmee.yzi.me/index.php/app/highscores")));
     }
     /**
@@ -110,6 +137,77 @@ public class MainMenu extends Activity {
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main_menu, container, false);
             return rootView;
+        }
+    }
+
+    //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
+    //Uri URI = new Uri("http://cmee.yzi.me/index.php/app/sethighscores", UriKind.Absolute);
+    private class PostScoreTask extends AsyncTask<String, Void, Boolean> {
+
+        private Exception exception;
+        private String reply = "No connection";
+
+        protected Boolean doInBackground(String... type) {
+            try {
+                postScore(type[0]);
+            } catch (Exception e) {
+                this.exception = e;
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+
+            SendToast(reply);
+            super.onPostExecute(aBoolean);
+        }
+
+        private void SendToast(final String message) {
+
+            View posted = findViewById(R.id.buttonHighscores);
+            posted.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        public void postScore(String type) {
+            // Create a new HttpClient and Post Header
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/setAllhighscores");
+
+            try {
+                App globalVariable = (App) getApplicationContext();
+
+
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
+                nameValuePairs.add(new BasicNameValuePair("userid", String.valueOf(globalVariable.MainUser().GetUserid())));
+                nameValuePairs.add(new BasicNameValuePair("all", String.valueOf(globalVariable.MainUser().GetScore())));
+                nameValuePairs.add(new BasicNameValuePair("daily", String.valueOf(globalVariable.MainUser().GetScoreDay())));
+                nameValuePairs.add(new BasicNameValuePair("weekly", String.valueOf(globalVariable.MainUser().GetScoreWeek())));
+                Param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(Param);
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    response.getEntity().writeTo(out);
+                    out.close();
+                    String responseString = out.toString();
+                    if (responseString != null) {
+                        reply = responseString.toString();
+                    }
+                }
+            } catch (ClientProtocolException e) {
+                // TODO Auto-generated catch block
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+            }
         }
     }
 }

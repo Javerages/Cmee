@@ -156,21 +156,23 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     protected void onSaveInstanceState(Bundle outState) {
         // Adding the pointList arraylist to Bundle
 
-        ArrayList<LatLng> pointList = new ArrayList<LatLng>();
-        boolean[] capList = new boolean[Capturepoints.size()];
-        for (int j = 0; j < Capturepoints.size(); j++) {
-            pointList.add(new LatLng(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX()));
+        if (playing) {
+            ArrayList<LatLng> pointList = new ArrayList<LatLng>();
+            boolean[] capList = new boolean[Capturepoints.size()];
+            for (int j = 0; j < Capturepoints.size(); j++) {
+                pointList.add(new LatLng(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX()));
 
-            if (Capturepoints.elementAt(j).Captured()) {
-                capList[j] = true;
-            } else {
-                capList[j] = false;
+                if (Capturepoints.elementAt(j).Captured()) {
+                    capList[j] = true;
+                } else {
+                    capList[j] = false;
+                }
             }
-        }
 
         outState.putParcelableArrayList("points", pointList);
         outState.putBooleanArray("Captures", capList);
         // Saving the bundle
+        }
         super.onSaveInstanceState(outState);
     }
 
@@ -179,11 +181,36 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         super.onResume();
         setUpMapIfNeeded();
     }
+    @Override
+    protected void onPause() {
+        App globalVariable = (App) getApplicationContext();
+        globalVariable.storage.edit().putInt("Score", globalVariable.MainUser().GetScore()).commit();
+        globalVariable.storage.edit().putInt("ScoreDay", globalVariable.MainUser().GetScoreDay()).commit();
+        globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScoreWeek()).commit();
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        globalVariable.storage.edit().putString("lastPlayDate", date).commit();
+        if (globalVariable.MainUser().GetUserid() >= 0) {
+            if (Postscore == null) {
+                Postscore = new PostScoreTask();
+                Postscore.execute("all");
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
+        }
+        super.onPause();
+    }
 
     @Override
     protected void onDestroy() {
 
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        mGoogleApiClient.connect();
+
+        super.onStart();
     }
 
     @Override
@@ -206,24 +233,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         super.onStop();
     }
 
-    @Override
-    protected void onPause() {
-        App globalVariable = (App) getApplicationContext();
-        globalVariable.storage.edit().putInt("Score", globalVariable.MainUser().GetScore()).commit();
-        globalVariable.storage.edit().putInt("ScoreDay", globalVariable.MainUser().GetScoreDay()).commit();
-        globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScoreWeek()).commit();
-        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        globalVariable.storage.edit().putString("lastPlayDate", date).commit();
-        if (globalVariable.MainUser().GetUserid() >= 0) {
-            if (Postscore == null) {
-                Postscore = new PostScoreTask();
-                Postscore.execute("all");
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
-        }
-        super.onPause();
-    }
+
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -281,7 +291,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, locReq, this);
             // Display the connection status
-            Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
             // If already requested, start periodic updates #error#
 
             ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -289,22 +299,19 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             if (!internet.isConnected()) {
                 internet = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                 if (!internet.isConnected()) {
-                    Toast.makeText(this, "Connectivity problems, unexpected behaviour may occur", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Enable internet connection for map", Toast.LENGTH_SHORT).show();
                 }
             }
-
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
-        playing = false;
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        playing = false;
         Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
     }
 
@@ -431,22 +438,23 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     {
         App globalVariable = (App) getApplicationContext();
         int Nrcaptured = 0; //If captured=true -> counter rises -> if counter >= nrOfPoints -> All capped: End game
-        if (playing) {
+
             for (int i = 0; i < Players.size(); i++) {
                 for (int j = 0; j < Capturepoints.size(); j++) {
                     if (!Capturepoints.elementAt(j).Captured()) {
-                        float[] dist = new float[4];
+
+                            float[] dist = new float[4];
                         Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), Players.elementAt(i).GetY(), Players.elementAt(i).GetX(), dist);
                         //Captrue if accmod is in orde
                         if (dist[0] < PointSize) {
 
-                            if (accuracy < 30) {
+                            if (accuracy < 60) {
                                 Capturepoints.elementAt(j).Capture();
                                 Nrcaptured += 1;
                                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                                         CameraPosition.fromLatLngZoom(new LatLng(Capturepoints.elementAt(j).GetY(),
-                                                        Capturepoints.elementAt(j).GetX()),
-                                                (float) (17f / Math.pow(radius / 10, 0.15))
+                                        Capturepoints.elementAt(j).GetX()),
+                                        (float) (17f / Math.pow(radius / 10, 0.15))
                                         )));
                                 if (Players.elementAt(i).GetIsMe()) {
                                     Toast.makeText(this, "Point " + Capturepoints.elementAt(j).GetIndex() + " Captured", Toast.LENGTH_LONG).show();
@@ -459,19 +467,17 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                                 Toast.makeText(this, "GPS not accurate enough to capture", Toast.LENGTH_SHORT).show();
                             }
                         }
-                    } else {
+
+                }else {
                         Nrcaptured += 1;
                     }
-                }
             }
 
             //End game
             if (Nrcaptured >= nrOfPoints) {
                 globalVariable.MainUser().AddScore((nrOfPoints + radius) / 10);
                 playing = false;
-                Intent intent = new Intent(this, MainMenu.class).addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
-                startActivity(intent);
+                finish();
             }
         }
 
@@ -513,6 +519,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public boolean onDoubleTapEvent(MotionEvent e) {
+        CheckHits(Pointsize, 0);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                 CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetY(),
                                 Players.elementAt(0).GetX()),
@@ -565,6 +572,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             for (int j = 0; j < Capturepoints.size(); j++) {
                 Capturepoints.elementAt(j).Capture();
             }
+            CheckHits(Pointsize,0);
         }
     }
 
@@ -573,7 +581,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     private class PostScoreTask extends AsyncTask<String, Void, Boolean> {
 
         private Exception exception;
-        private String reply = "No connection";
+        private String reply = "Highscores not uploaded";
 
         protected Boolean doInBackground(String... type) {
             try {
