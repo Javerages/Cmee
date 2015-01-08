@@ -33,6 +33,7 @@
 
         <activity
             android:name=".MainMenu"
+            android:icon="@drawable/ic_action_name"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -42,6 +43,7 @@
         </activity>
         <activity
             android:name=".Game"
+            android:icon="@drawable/ic_action_name"
             android:label="@string/title_activity_game" >
         </activity>
 
@@ -55,11 +57,13 @@
 
         <activity
             android:name=".Login"
+            android:icon="@drawable/ic_action_name"
             android:label="@string/title_activity_login"
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
         <activity
             android:name=".Settings"
+            android:icon="@drawable/ic_action_name"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".Game" >
             <meta-data
