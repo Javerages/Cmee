@@ -2,6 +2,7 @@ package be.khlim.student.cmee.cmee;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 
 import java.text.SimpleDateFormat;
@@ -19,6 +20,7 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         storage = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         //Toast.makeText(this, "Test toast", Toast.LENGTH_SHORT).show();
         MainUser().SetScore(storage.getInt("Score", 0), storage.getInt("ScoreWeek", 0), storage.getInt("ScoreDay", 0));
@@ -33,6 +35,7 @@ public class App extends Application {
 
         MainUser().SetUserid(storage.getInt("Userid", -1));
         MainUser().SetUsername(storage.getString("Username", "Please log in"));
+
     }
 
     public User MainUser() {

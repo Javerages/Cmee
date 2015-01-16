@@ -37,7 +37,8 @@
             android:id="@+id/buttonPlay"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
-            android:onClick="GoPlay"/>
+            android:onClick="GoPlay"
+            android:layout_margin="5dp" />
 
         <Button
             android:layout_width="204dp"
@@ -46,7 +47,8 @@
             android:id="@+id/buttonSettings"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
-            android:onClick="GoSettings"/>
+            android:onClick="GoSettings"
+            android:layout_margin="5dp" />
 
         <Button
             android:layout_width="204dp"
@@ -55,7 +57,8 @@
             android:id="@+id/buttonLogin"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
-            android:onClick="GoLogin"/>
+            android:onClick="GoLogin"
+            android:layout_margin="5dp" />
 
         <Button
             android:layout_width="204dp"
@@ -64,7 +67,8 @@
             android:id="@+id/buttonHighscores"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.03"
-            android:onClick="GoHighscores"/>
+            android:onClick="GoHighscores"
+            android:layout_margin="5dp" />
 
         <TextView
             android:layout_width="wrap_content"

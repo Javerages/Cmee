@@ -38,6 +38,8 @@ public class MainMenu extends Activity {
     PostScoreTask Postscore = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
         if (savedInstanceState == null) {
@@ -138,6 +140,15 @@ public class MainMenu extends Activity {
             View rootView = inflater.inflate(R.layout.fragment_main_menu, container, false);
             return rootView;
         }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                             View.SYSTEM_UI_FLAG_FULLSCREEN);}
+
     }
 
     //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";

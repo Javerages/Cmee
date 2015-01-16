@@ -14,6 +14,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import android.view.View;
 
 import java.util.List;
 
@@ -72,6 +73,8 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setupActionBar();
     }
@@ -177,6 +180,14 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
         return isXLargeTablet(this) && !isSimplePreferences(this);
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_FULLSCREEN);}
+
+    }
     /**
      * {@inheritDoc}
      */
@@ -309,25 +320,6 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
                 }
             }
             return true;
-        }
-    }
-
-    /**
-     * This fragment shows notification preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class NotificationPreferenceFragment extends PreferenceFragment {
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_notification);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            //bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
         }
     }
 

@@ -23,7 +23,6 @@ public class NumberPickerPreference extends DialogPreference {
 
     public NumberPickerPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
-
         setDialogLayoutResource(R.layout.number_pref);
         setPositiveButtonText(android.R.string.ok);
         setNegativeButtonText(android.R.string.cancel);
@@ -35,6 +34,7 @@ public class NumberPickerPreference extends DialogPreference {
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
         this.picker = (NumberPicker)view.findViewById(R.id.pref_num_picker);
+
         SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
         int maxPoints = Integer.parseInt(preferences.getString("radius", "10"));
 
