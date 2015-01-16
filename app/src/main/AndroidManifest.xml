@@ -44,7 +44,11 @@
         <activity
             android:name=".Game"
             android:icon="@drawable/ic_action_name"
-            android:label="@string/title_activity_game" >
+            android:label="@string/title_activity_game"
+            android:parentActivityName=".MainMenu" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="be.khlim.student.cmee.cmee.MainMenu" />
         </activity>
 
         <meta-data
@@ -59,16 +63,20 @@
             android:name=".Login"
             android:icon="@drawable/ic_action_name"
             android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:parentActivityName=".MainMenu" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="be.khlim.student.cmee.cmee.MainMenu" />
         </activity>
         <activity
             android:name=".Settings"
             android:icon="@drawable/ic_action_name"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".Game" >
+            android:parentActivityName=".MainMenu" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="be.khlim.student.cmee.cmee.Game" />
+                android:value="be.khlim.student.cmee.cmee.MainMenu" />
         </activity>
 
     </application>

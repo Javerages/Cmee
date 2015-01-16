@@ -1,5 +1,6 @@
 package be.khlim.student.cmee.cmee;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -94,6 +95,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        getActionBar().setDisplayHomeAsUpEnabled(true);
         mDetector = new GestureDetectorCompat(this, this);
         // Set the gesture detector as the double tap
         // listener.
@@ -103,7 +105,17 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         radius = Integer.parseInt(preferences.getString("radius", "10"));
         nrOfPoints = Integer.parseInt(preferences.getString("NrOfPoints", "5"));
 
-        Pointsize = Math.pow(radius, 0.7f) * 4;
+        App globalVariable = (App) getApplicationContext();
+        if (globalVariable.MainUser().GetScore() < 2) {
+
+            AlertDialog alertDialog;
+            alertDialog = new AlertDialog.Builder(Game.this).create();
+            alertDialog.setTitle("How to play");
+            alertDialog.setMessage("Walk to every circle on the map to win.");
+            alertDialog.show();
+        }
+
+        Pointsize = Math.pow(radius, 0.8f) * 3;
         LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Toast.makeText(this, "Pls enable gps", Toast.LENGTH_LONG).show();
@@ -171,9 +183,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 }
             }
 
-        outState.putParcelableArrayList("points", pointList);
-        outState.putBooleanArray("Captures", capList);
-        // Saving the bundle
+            outState.putParcelableArrayList("points", pointList);
+            outState.putBooleanArray("Captures", capList);
+            // Saving the bundle
         }
         super.onSaveInstanceState(outState);
     }
@@ -183,6 +195,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         super.onResume();
         setUpMapIfNeeded();
     }
+
     @Override
     protected void onPause() {
         App globalVariable = (App) getApplicationContext();
@@ -191,14 +204,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScoreWeek()).commit();
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         globalVariable.storage.edit().putString("lastPlayDate", date).commit();
-        if (globalVariable.MainUser().GetUserid() >= 0) {
-            if (Postscore == null) {
-                Postscore = new PostScoreTask();
-                Postscore.execute("all");
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
-        }
+
         super.onPause();
     }
 
@@ -234,7 +240,6 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
         super.onStop();
     }
-
 
 
     /**
@@ -441,44 +446,63 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         App globalVariable = (App) getApplicationContext();
         int Nrcaptured = 0; //If captured=true -> counter rises -> if counter >= nrOfPoints -> All capped: End game
 
-            for (int i = 0; i < Players.size(); i++) {
-                for (int j = 0; j < Capturepoints.size(); j++) {
-                    if (!Capturepoints.elementAt(j).Captured()) {
+        for (int i = 0; i < Players.size(); i++) {
+            for (int j = 0; j < Capturepoints.size(); j++) {
+                if (!Capturepoints.elementAt(j).Captured()) {
 
-                            float[] dist = new float[4];
-                        Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), Players.elementAt(i).GetY(), Players.elementAt(i).GetX(), dist);
-                        //Captrue if accmod is in orde
-                        if (dist[0] < PointSize) {
+                    float[] dist = new float[4];
+                    Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), Players.elementAt(i).GetY(), Players.elementAt(i).GetX(), dist);
+                    //Captrue if accmod is in orde
+                    if (dist[0] < PointSize) {
 
-                            if (accuracy < 60) {
-                                Capturepoints.elementAt(j).Capture();
-                                Nrcaptured += 1;
-                                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                                        CameraPosition.fromLatLngZoom(new LatLng(Capturepoints.elementAt(j).GetY(),
-                                        Capturepoints.elementAt(j).GetX()),
-                                        (float) (17f / Math.pow(radius / 10, 0.15))
-                                        )));
-                                if (Players.elementAt(i).GetIsMe()) {
-                                    Toast.makeText(this, "Point " + Capturepoints.elementAt(j).GetIndex() + " Captured", Toast.LENGTH_LONG).show();
-                                    Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
-                                    // Vibrate for 500 milliseconds
-                                    v.vibrate(500);
-                                    globalVariable.MainUser().AddScore(1);
+                        if (accuracy < 60) {
+                            Capturepoints.elementAt(j).Capture();
+                            Nrcaptured += 1;
+                            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                                    CameraPosition.fromLatLngZoom(new LatLng(Capturepoints.elementAt(j).GetY(),
+                                                    Capturepoints.elementAt(j).GetX()),
+                                            (float) (17f / Math.pow(radius / 10, 0.15))
+                                    )));
+                            if (Players.elementAt(i).GetIsMe()) {
+                                Toast.makeText(this, "Point " + Capturepoints.elementAt(j).GetIndex() + " Captured", Toast.LENGTH_LONG).show();
+                                Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+                                // Vibrate for 500 milliseconds
+                                v.vibrate(500);
+
+                                if (radius <= 100) {
+                                    globalVariable.MainUser().AddScore(radius / 10);
+                                } else {
+                                    globalVariable.MainUser().AddScore(50);
                                 }
-                            } else {
-                                Toast.makeText(this, "GPS not accurate enough to capture", Toast.LENGTH_SHORT).show();
-                            }
-                        }
 
-                }else {
-                        Nrcaptured += 1;
+                            }
+                        } else {
+                            Toast.makeText(this, "GPS not accurate enough to capture", Toast.LENGTH_SHORT).show();
+                        }
                     }
+
+                } else {
+                    Nrcaptured += 1;
+                }
             }
 
             //End game
             if (Nrcaptured >= nrOfPoints) {
-                globalVariable.MainUser().AddScore((nrOfPoints + radius) / 10);
+                if (radius <= 100) {
+                    globalVariable.MainUser().AddScore((radius / 10) * nrOfPoints);
+                } else {
+
+                    globalVariable.MainUser().AddScore((radius / 1000) * nrOfPoints);
+                }
                 playing = false;
+                if (globalVariable.MainUser().GetUserid() >= 0) {
+                    if (Postscore == null) {
+                        Postscore = new PostScoreTask();
+                        Postscore.execute("all");
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
+                }
                 finish();
             }
         }
@@ -574,7 +598,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             for (int j = 0; j < Capturepoints.size(); j++) {
                 Capturepoints.elementAt(j).Capture();
             }
-            CheckHits(Pointsize,0);
+            CheckHits(Pointsize, 0);
         }
     }
 
@@ -583,7 +607,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             getWindow().getDecorView().setSystemUiVisibility(
-                            View.SYSTEM_UI_FLAG_FULLSCREEN);}
+                    View.SYSTEM_UI_FLAG_FULLSCREEN);
+        }
 
     }
 

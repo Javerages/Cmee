@@ -66,7 +66,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
                 View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        getActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
