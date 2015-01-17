@@ -27,6 +27,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.plus.Plus;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -60,6 +65,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
     private View mProgressView;
     private View mLoginFormView;
 
+    private GoogleApiClient mGoogleApiClient;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().getDecorView().setSystemUiVisibility(
@@ -103,6 +109,12 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+      mGoogleApiClient  = new GoogleApiClient.Builder(this)
+              .addApi(LocationServices.API)
+              .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
+              .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+              .build();
+        mGoogleApiClient.connect();
     }
 
     private void populateAutoComplete() {
@@ -464,6 +476,9 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
                 globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
                 globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
                 SendToast("Registered");
+                if (mGoogleApiClient.isConnected()) {
+                    Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_a_new_explorer));
+                }
                 finish();
             } else {
 

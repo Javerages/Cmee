@@ -5,3 +5,4 @@
     android:id="@+id/map"
     tools:context="be.khlim.student.cmee.cmee.Game"
     android:name="com.google.android.gms.maps.SupportMapFragment"/>
+

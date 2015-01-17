@@ -4,6 +4,7 @@
     <string name="app_name">Cmee</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="action_Chieves">Achievements</string>
     <string name="title_activity_game">Capture mee</string>
     <string name="title_section1">Section 1</string>
     <string name="title_section2">Section 2</string>
@@ -11,4 +12,6 @@
     <string name="title_activity_test_map_active">Map</string>
     <string name="LoginButtonText">Login</string>
     <string name="HighscoreButtonText">Highscores</string>
+
+    <string name="banner_ad_unit_id">ca-app-pub-7549719204495848/3267836307</string>
 </resources>

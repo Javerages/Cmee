@@ -1,7 +1,6 @@
 package be.khlim.student.cmee.cmee;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,9 +11,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
+import com.google.android.gms.plus.Plus;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,50 +33,53 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class MainMenu extends Activity {
     PostScoreTask Postscore = null;
+    private GoogleApiClient mGoogleApiClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
-        if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
-        }
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .build();
+        mGoogleApiClient.connect();
 
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
         App globalVariable = (App) getApplicationContext();
         TextView mloginlbl = (TextView) findViewById(R.id.loggedIn);
         mloginlbl.setText("");
-        if(globalVariable.MainUser().GetUserid() >= 0){
+        if (globalVariable.MainUser().GetUserid() >= 0) {
             mloginlbl.setVisibility(View.VISIBLE);
             mloginlbl.setText("Logged in as " + globalVariable.MainUser().GetUsername());
         }
 
         TextView mScoreView = (TextView) findViewById(R.id.Score);
-        if(globalVariable.MainUser().GetScore() >= 0){
+        if (globalVariable.MainUser().GetScore() >= 0) {
             mScoreView.setVisibility(View.VISIBLE);
-            mScoreView.setText("Score: "+ globalVariable.MainUser().GetScore());
+            mScoreView.setText("Score: " + globalVariable.MainUser().GetScore());
         }
 
     }
 
     @Override
-    protected void onPause(){
+    protected void onPause() {
         super.onPause();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -91,31 +98,48 @@ public class MainMenu extends Activity {
             //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
             startActivity(intent);
         }
+
+        if (id == R.id.action_Chieves) {
+            startActivityForResult(Games.Achievements.getAchievementsIntent(
+                    mGoogleApiClient), 1);
+        }
         return super.onOptionsItemSelected(item);
     }
 
-    public void GoPlay(View view){
+    public void GoPlay(View view) {
 
         Intent intent = new Intent(this, Game.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
         startActivity(intent);
     }
 
-    public void GoSettings(View view){
+    public void GoSettings(View view) {
         Intent intent = new Intent(this, Settings.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
         startActivity(intent);
     }
 
-    public void GoLogin(View view){
+    public void GoChieves(View view) {
+        startActivityForResult(Games.Achievements.getAchievementsIntent(
+                mGoogleApiClient), 1);
+    }
+
+    public void GoLogin(View view) {
         Intent intent = new Intent(this, Login.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
         startActivity(intent);
     }
 
-    public void GoHighscores(View view){
+    public void GoHighscores(View view) {
+
+
         App globalVariable = (App) getApplicationContext();
         if (globalVariable.MainUser().GetUserid() >= 0) {
+            if (Postscore != null) {
+                if (Postscore.finished) {
+                    Postscore = null;
+                }
+            }
             if (Postscore == null) {
                 Postscore = new PostScoreTask();
                 Postscore.execute("all");
@@ -126,6 +150,17 @@ public class MainMenu extends Activity {
 
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://cmee.yzi.me/index.php/app/highscores")));
     }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_FULLSCREEN);
+        }
+
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -136,19 +171,26 @@ public class MainMenu extends Activity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main_menu, container, false);
             return rootView;
         }
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                             View.SYSTEM_UI_FLAG_FULLSCREEN);}
+    public static class AdFragment extends Fragment {
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.fragment_ads, container, false);
+        }
 
+        @Override
+        public void onActivityCreated(Bundle bundle) {
+            super.onActivityCreated(bundle);
+            AdView mAdView = (AdView) getView().findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        }
     }
 
     //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
@@ -157,6 +199,7 @@ public class MainMenu extends Activity {
 
         private Exception exception;
         private String reply = "No connection";
+        private boolean finished = false;
 
         protected Boolean doInBackground(String... type) {
             try {
@@ -171,6 +214,12 @@ public class MainMenu extends Activity {
         protected void onPostExecute(Boolean aBoolean) {
 
             SendToast(reply);
+            if (reply.equals("Highscore saved")) {
+                if (mGoogleApiClient.isConnected()) {
+                    Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_beat_that));
+                }
+            }
+            finished = true;
             super.onPostExecute(aBoolean);
         }
 
@@ -186,6 +235,7 @@ public class MainMenu extends Activity {
         }
 
         public void postScore(String type) {
+
             // Create a new HttpClient and Post Header
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/setAllhighscores");
@@ -221,4 +271,6 @@ public class MainMenu extends Activity {
             }
         }
     }
+
 }
+

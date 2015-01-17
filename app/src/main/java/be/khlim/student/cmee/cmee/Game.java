@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -34,6 +35,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.plus.Plus;
+import com.google.example.games.basegameutils.BaseGameUtils;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -71,22 +74,23 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     // A fast frequency ceiling in milliseconds
     private static final long FASTEST_INTERVAL =
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
+    private static int RC_SIGN_IN = 9001;
     boolean playing = false;
     PostScoreTask Postscore = null;
-
     private Boolean NewGame = true;
     private int nrOfPoints = 5;
     private int nrOfPlayers = 10;
     private int radius = 10;
     private double Pointsize = 10;
-
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Vector<Player> Players = new Vector<Player>();
     private Vector<Capturepoint> Capturepoints = new Vector<Capturepoint>();
     private LocationRequest locReq;
     private GoogleApiClient mGoogleApiClient;
+    private boolean mResolvingConnectionFailure = false;
+    private boolean mAutoStartSignInflow = true;
+    private boolean mSignInClicked = false;
     private GestureDetectorCompat mDetector;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,12 +130,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
         // locClient = new LocationClient(this, this, this);
         // locClient.connect();
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        mGoogleApiClient.connect();
+
 
         locReq = LocationRequest.create();
         // Use high accuracy
@@ -161,7 +160,13 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             }
         }
 
-        setUpMapIfNeeded();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .addApi(LocationServices.API)
+                .build();
 
     }
 
@@ -216,9 +221,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     protected void onStart() {
-        mGoogleApiClient.connect();
-
         super.onStart();
+        mGoogleApiClient.connect();
+        setUpMapIfNeeded();
     }
 
     @Override
@@ -319,12 +324,55 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
+
+        if (mResolvingConnectionFailure) {
+            // already resolving
+            return;
+        }
+
+        // if the sign-in button was clicked or if auto sign-in is enabled,
+        // launch the sign-in flow
+        if (mSignInClicked || mAutoStartSignInflow) {
+            mAutoStartSignInflow = false;
+            mSignInClicked = false;
+            mResolvingConnectionFailure = true;
+
+            // Attempt to resolve the connection failure using BaseGameUtils.
+            // The R.string.signin_other_error value should reference a generic
+            // error string in your strings.xml file, such as "There was
+            // an issue with sign-in, please try again later."
+            if (!BaseGameUtils.resolveConnectionFailure(this,
+                    mGoogleApiClient, connectionResult,
+                    RC_SIGN_IN, "Error")) {
+                mResolvingConnectionFailure = false;
+            }
+        }
+        //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent intent) {
+        if (requestCode == RC_SIGN_IN) {
+            mSignInClicked = false;
+            mResolvingConnectionFailure = false;
+            if (resultCode == RESULT_OK) {
+                mGoogleApiClient.connect();
+            } else {
+                // Bring up an error dialog to alert the user that sign-in
+                // failed. The R.string.signin_failure should reference an error
+                // string in your strings.xml file that tells the user they
+                // could not be signed in, such as "Unable to sign in."
+                BaseGameUtils.showActivityResultError(this,
+                        requestCode, resultCode, R.string.signin_failure);
+            }
+        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
         if (mGoogleApiClient.isConnected()) {
+            Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_i_started_it), 1);
             for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetIsMe()) {
                     Players.elementAt(i).SetLocation(location);
@@ -413,7 +461,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetLocation() != null) {
 
-                    Drawable d = getResources().getDrawable(R.drawable.playercircle);
+                    Drawable d = getResources().getDrawable(R.drawable.ic_launcher);
                     BitmapDrawable bd = (BitmapDrawable) d.getCurrent();
                     Bitmap b = bd.getBitmap();
                     Bitmap bhalfsize = Bitmap.createScaledBitmap(b, ((b.getWidth() - 100) - 2 * (int) mMap.getCameraPosition().zoom), ((b.getHeight() - 100) - 2 * (int) mMap.getCameraPosition().zoom), false);
@@ -432,9 +480,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                     mMap.addCircle(new CircleOptions()
                             .center(new LatLng(Capturepoints.elementAt(i).GetY(), Capturepoints.elementAt(i).GetX()))
                             .radius(Pointsize)
-                            .strokeColor(android.R.color.black)
-                            .strokeWidth(5)
-                            .fillColor(Color.argb(200, 180, 180, 255)));
+                            .strokeColor(android.R.color.holo_orange_dark)
+                            .strokeWidth(1)
+                            .fillColor(Color.argb(200, 255, 193, 77)));
                     // Toast.makeText(this, "C Location gotten :" + Capturepoints.elementAt(i).GetX() + " " + Capturepoints.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
                 }
             }
@@ -488,11 +536,13 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
             //End game
             if (Nrcaptured >= nrOfPoints) {
-                if (radius <= 100) {
-                    globalVariable.MainUser().AddScore((radius / 10) * nrOfPoints);
+                if (radius <= 1000) {
+                    globalVariable.MainUser().AddScore((radius / 10) * nrOfPoints / 2);
                 } else {
-
-                    globalVariable.MainUser().AddScore((radius / 1000) * nrOfPoints);
+                    if (mGoogleApiClient.isConnected()) {
+                        Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_until_the_end));
+                    }
+                    globalVariable.MainUser().AddScore((radius / 100) * nrOfPoints / 2);
                 }
                 playing = false;
                 if (globalVariable.MainUser().GetUserid() >= 0) {
@@ -500,6 +550,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                         Postscore = new PostScoreTask();
                         Postscore.execute("all");
                     }
+
                 } else {
                     Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
                 }
@@ -632,6 +683,12 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         protected void onPostExecute(Boolean aBoolean) {
 
             SendToast(reply);
+            if (!reply.equals("Highscores not uploaded")) {
+                if (mGoogleApiClient.isConnected()) {
+                    Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_until_the_end));
+                }
+            }
+
             super.onPostExecute(aBoolean);
         }
 
