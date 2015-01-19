@@ -1,6 +1,7 @@
 package be.khlim.student.cmee.cmee;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -63,33 +64,44 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         GestureDetector.OnDoubleTapListener, GoogleMap.OnMapClickListener {
 
     // Update frequency in seconds
-    public static final int UPDATE_INTERVAL_IN_SECONDS = 10;
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 20;
     // Milliseconds per second
-    private static final int MILLISECONDS_PER_SECOND = 1000;
+    private static final int MILLISECONDS_PER_SECOND = 100;
     // Update frequency in milliseconds
     private static final long UPDATE_INTERVAL =
             MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
     // The fastest update frequency, in seconds
-    private static final int FASTEST_INTERVAL_IN_SECONDS = 5;
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 10;
     // A fast frequency ceiling in milliseconds
     private static final long FASTEST_INTERVAL =
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
-    private static int RC_SIGN_IN = 9001;
+    private static int RC_SIGN_IN = 9001; //for google games ui
+
     boolean playing = false;
+    boolean deletedpoint = false; //check if a point was deleted
+    boolean capthis = false; // var for removing a point
+
     PostScoreTask Postscore = null;
+
     private Boolean NewGame = true;
     private int nrOfPoints = 5;
     private int nrOfPlayers = 10;
     private int radius = 10;
     private double Pointsize = 10;
+
+    //maps:
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Vector<Player> Players = new Vector<Player>();
     private Vector<Capturepoint> Capturepoints = new Vector<Capturepoint>();
     private LocationRequest locReq;
     private GoogleApiClient mGoogleApiClient;
+
+    //Google games ui:
     private boolean mResolvingConnectionFailure = false;
     private boolean mAutoStartSignInflow = true;
     private boolean mSignInClicked = false;
+
+    //Gestures:
     private GestureDetectorCompat mDetector;
 
     @Override
@@ -108,6 +120,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         SharedPreferences preferences = ((App) getApplicationContext()).storage;
         radius = Integer.parseInt(preferences.getString("radius", "10"));
         nrOfPoints = Integer.parseInt(preferences.getString("NrOfPoints", "5"));
+
 
         App globalVariable = (App) getApplicationContext();
         if (globalVariable.MainUser().GetScore() < 2) {
@@ -300,6 +313,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     public void onConnected(Bundle bundle) {
 
         if (mGoogleApiClient.isConnected()) {
+
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, locReq, this);
             // Display the connection status
@@ -314,6 +328,11 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                     Toast.makeText(this, "Enable internet connection for map", Toast.LENGTH_SHORT).show();
                 }
             }
+
+            if (radius > 10000) {
+                Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_going_worldwide));
+            }
+
         }
     }
 
@@ -516,7 +535,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                                 Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
                                 // Vibrate for 500 milliseconds
                                 v.vibrate(500);
-
+                                Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_generation_i), 1);
                                 if (radius <= 100) {
                                     globalVariable.MainUser().AddScore(radius / 10);
                                 } else {
@@ -536,13 +555,15 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
             //End game
             if (Nrcaptured >= nrOfPoints) {
+                if (!deletedpoint){
                 if (radius <= 1000) {
                     globalVariable.MainUser().AddScore((radius / 10) * nrOfPoints / 2);
                 } else {
-                    if (mGoogleApiClient.isConnected()) {
-                        Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_until_the_end));
-                    }
                     globalVariable.MainUser().AddScore((radius / 100) * nrOfPoints / 2);
+                }}
+
+                if (mGoogleApiClient.isConnected()) {
+                    Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_until_the_end));
                 }
                 playing = false;
                 if (globalVariable.MainUser().GetUserid() >= 0) {
@@ -564,8 +585,39 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     Gestures
     */
     @Override
-    public void onMapClick(LatLng latLng) {
+    public void onMapClick(LatLng Tappos) {
 
+        for (int j = 0; j < Capturepoints.size(); j++) {
+            if (!Capturepoints.elementAt(j).Captured()) {
+                float[] dist = new float[4];
+                Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), Tappos.latitude, Tappos.longitude, dist);
+
+                if (dist[0] < Pointsize) {
+                    AlertDialog OK = new AlertDialog.Builder(this)
+                            .setTitle("Delete point")
+                            .setMessage("Are you sure you want to delete point " + Capturepoints.elementAt(j).GetIndex()+ "? You will lose any bonus points for finishing")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    capthis = true;
+                                    deletedpoint = true;
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // do nothing
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_delete)
+                            .show();
+
+                    if (capthis){
+                        capthis = false;
+                        Capturepoints.elementAt(j).Capture();
+                    }
+                }
+            }
+
+        }
     }
 
     @Override

@@ -426,6 +426,9 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
                     globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
                     //TODO: Check if user has score online
                     success = true;
+                    if (mGoogleApiClient.isConnected()) {
+                        Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_a_new_explorer));
+                    }
                 } else {
                     SendToast(responseString);
                 }

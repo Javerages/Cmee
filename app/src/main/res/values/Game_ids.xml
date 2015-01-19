@@ -10,8 +10,8 @@ Save this file as res/values/games-ids.xml in your project.
     <string name="achievement_until_the_end">CgkIttmjot0SEAIQBg</string>
     <string name="achievement_beat_that">CgkIttmjot0SEAIQBw</string>
     <string name="achievement_i_started_it">CgkIttmjot0SEAIQCA</string>
+    <string name="achievement_generation_i">CgkIttmjot0SEAIQCw</string>
     <string name="leaderboard_daily_score">CgkIttmjot0SEAIQAA</string>
     <string name="leaderboard_monthly_score">CgkIttmjot0SEAIQAQ</string>
     <string name="leaderboard_all_time_score">CgkIttmjot0SEAIQAg</string>
-
 </resources>

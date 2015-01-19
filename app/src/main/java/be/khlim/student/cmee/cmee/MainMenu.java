@@ -16,9 +16,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.plus.Plus;
+import com.google.example.games.basegameutils.BaseGameUtils;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -37,9 +39,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainMenu extends Activity {
+public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFailedListener {
     PostScoreTask Postscore = null;
     private GoogleApiClient mGoogleApiClient;
+
+    private boolean mResolvingConnectionFailure = false;
+    private boolean mAutoStartSignInflow = true;
+    private boolean mSignInClicked = false;
+
+    private static int RC_SIGN_IN = 9001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +59,8 @@ public class MainMenu extends Activity {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .addOnConnectionFailedListener(this)
                 .build();
-        mGoogleApiClient.connect();
 
     }
 
@@ -100,10 +108,60 @@ public class MainMenu extends Activity {
         }
 
         if (id == R.id.action_Chieves) {
-            startActivityForResult(Games.Achievements.getAchievementsIntent(
-                    mGoogleApiClient), 1);
+            if (mGoogleApiClient.isConnected()) {
+                startActivityForResult(Games.Achievements.getAchievementsIntent(
+                        mGoogleApiClient), 1);
+            }else {mSignInClicked =true;
+            mGoogleApiClient.connect();}
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        if (mResolvingConnectionFailure) {
+            // already resolving
+            return;
+        }
+
+        // if the sign-in button was clicked or if auto sign-in is enabled,
+        // launch the sign-in flow
+        if (mSignInClicked || mAutoStartSignInflow) {
+            mAutoStartSignInflow = false;
+            mSignInClicked = false;
+            mResolvingConnectionFailure = true;
+
+            // Attempt to resolve the connection failure using BaseGameUtils.
+            // The R.string.signin_other_error value should reference a generic
+            // error string in your strings.xml file, such as "There was
+            // an issue with sign-in, please try again later."
+            if (!BaseGameUtils.resolveConnectionFailure(this,
+                    mGoogleApiClient, connectionResult,
+                    RC_SIGN_IN, "Error")) {
+                mResolvingConnectionFailure = false;
+            }
+        }
+        //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent intent) {
+        if (requestCode == RC_SIGN_IN) {
+            mSignInClicked = false;
+            mResolvingConnectionFailure = false;
+            if (resultCode == RESULT_OK) {
+                mGoogleApiClient.connect();
+            } else {
+                // Bring up an error dialog to alert the user that sign-in
+                // failed. The R.string.signin_failure should reference an error
+                // string in your strings.xml file that tells the user they
+                // could not be signed in, such as "Unable to sign in."
+                BaseGameUtils.showActivityResultError(this,
+                        requestCode, resultCode, R.string.signin_failure);
+            }
+        }
     }
 
     public void GoPlay(View view) {
@@ -120,8 +178,13 @@ public class MainMenu extends Activity {
     }
 
     public void GoChieves(View view) {
-        startActivityForResult(Games.Achievements.getAchievementsIntent(
-                mGoogleApiClient), 1);
+        if (mGoogleApiClient.isConnected()) {
+            startActivityForResult(Games.Achievements.getAchievementsIntent(
+                    mGoogleApiClient), 1);
+        }else {
+            mSignInClicked = true;
+            mGoogleApiClient.connect();
+        }
     }
 
     public void GoLogin(View view) {
@@ -217,6 +280,8 @@ public class MainMenu extends Activity {
             if (reply.equals("Highscore saved")) {
                 if (mGoogleApiClient.isConnected()) {
                     Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_beat_that));
+                }else{
+
                 }
             }
             finished = true;
