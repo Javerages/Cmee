@@ -195,8 +195,14 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
 
     public void GoHighscores(View view) {
 
-
-        App globalVariable = (App) getApplicationContext();
+        if (mGoogleApiClient.isConnected()) {
+            startActivityForResult(Games.Leaderboards.getLeaderboardIntent(mGoogleApiClient,
+                    this.getString(R.string.leaderboard_cmee_highscore)), 1);
+        }else {
+            mSignInClicked = true;
+            mGoogleApiClient.connect();
+        }
+      /*  App globalVariable = (App) getApplicationContext();
         if (globalVariable.MainUser().GetUserid() >= 0) {
             if (Postscore != null) {
                 if (Postscore.finished) {
@@ -209,9 +215,10 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
             }
         } else {
             Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
-        }
+        }*
 
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://cmee.yzi.me/index.php/app/highscores")));
+        */
     }
 
     @Override

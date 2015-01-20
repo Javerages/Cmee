@@ -566,7 +566,8 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                     Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_until_the_end));
                 }
                 playing = false;
-                if (globalVariable.MainUser().GetUserid() >= 0) {
+
+               /* if (globalVariable.MainUser().GetUserid() >= 0) {
                     if (Postscore == null) {
                         Postscore = new PostScoreTask();
                         Postscore.execute("all");
@@ -574,7 +575,14 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
                 } else {
                     Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
+                }*/
+
+                if(mGoogleApiClient.isConnected()){
+                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_cmee_highscore), 1337);
+                }else {
+                    Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
                 }
+
                 finish();
             }
         }
