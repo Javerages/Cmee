@@ -578,7 +578,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 }*/
 
                 if(mGoogleApiClient.isConnected()){
-                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_cmee_highscore), 1337);
+                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
+                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
+                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
                 }else {
                     Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
                 }

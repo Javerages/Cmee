@@ -61,7 +61,7 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
                 .addOnConnectionFailedListener(this)
                 .build();
-
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -194,14 +194,19 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
     }
 
     public void GoHighscores(View view) {
-
+        App globalVariable = (App) getApplicationContext();
         if (mGoogleApiClient.isConnected()) {
-            startActivityForResult(Games.Leaderboards.getLeaderboardIntent(mGoogleApiClient,
-                    this.getString(R.string.leaderboard_cmee_highscore)), 1);
+            Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
+            Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
+            Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
+            Intent intent = new Intent(this, Highscores.class);
+            //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+            startActivity(intent);
         }else {
             mSignInClicked = true;
             mGoogleApiClient.connect();
         }
+
       /*  App globalVariable = (App) getApplicationContext();
         if (globalVariable.MainUser().GetUserid() >= 0) {
             if (Postscore != null) {
