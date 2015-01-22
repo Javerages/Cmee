@@ -8,8 +8,8 @@ android {
         applicationId "be.khlim.student.cmee.cmee"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 4
-        versionName "2.2"
+        versionCode 7
+        versionName "2.5"
     }
     buildTypes {
         release {

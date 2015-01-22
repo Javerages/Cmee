@@ -3,7 +3,6 @@ package be.khlim.student.cmee.cmee;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,15 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFailedListener {
+public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+    private static int RC_SIGN_IN = 9001;
     PostScoreTask Postscore = null;
     private GoogleApiClient mGoogleApiClient;
-
     private boolean mResolvingConnectionFailure = false;
     private boolean mAutoStartSignInflow = true;
     private boolean mSignInClicked = false;
-
-    private static int RC_SIGN_IN = 9001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +59,16 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
                 .addOnConnectionFailedListener(this)
                 .build();
-        mGoogleApiClient.connect();
+
+
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);}
     }
 
     @Override
@@ -111,8 +118,10 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
             if (mGoogleApiClient.isConnected()) {
                 startActivityForResult(Games.Achievements.getAchievementsIntent(
                         mGoogleApiClient), 1);
-            }else {mSignInClicked =true;
-            mGoogleApiClient.connect();}
+            } else {
+                mSignInClicked = true;
+                mGoogleApiClient.connect();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -153,6 +162,10 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
             mResolvingConnectionFailure = false;
             if (resultCode == RESULT_OK) {
                 mGoogleApiClient.connect();
+                Button Loginbtn = (Button) findViewById(R.id.buttonLogin);
+                Loginbtn.setVisibility(View.GONE);
+                Button Logoutbtn = (Button) findViewById(R.id.buttonLogout);
+                Logoutbtn.setVisibility(View.VISIBLE);
             } else {
                 // Bring up an error dialog to alert the user that sign-in
                 // failed. The R.string.signin_failure should reference an error
@@ -165,7 +178,6 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
     }
 
     public void GoPlay(View view) {
-
         Intent intent = new Intent(this, Game.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
         startActivity(intent);
@@ -181,16 +193,28 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
         if (mGoogleApiClient.isConnected()) {
             startActivityForResult(Games.Achievements.getAchievementsIntent(
                     mGoogleApiClient), 1);
-        }else {
+        } else {
             mSignInClicked = true;
             mGoogleApiClient.connect();
         }
     }
 
     public void GoLogin(View view) {
-        Intent intent = new Intent(this, Login.class);
+      /*  Intent intent = new Intent(this, Login.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
-        startActivity(intent);
+        startActivity(intent);*/
+
+        if (mGoogleApiClient != null) {
+            if (!mGoogleApiClient.isConnected()){
+                mSignInClicked = true;
+            mGoogleApiClient.connect();
+        } else {
+            Games.signOut(mGoogleApiClient);
+            mGoogleApiClient.disconnect();
+            findViewById(R.id.buttonLogin).setVisibility(View.VISIBLE);
+            findViewById(R.id.buttonLogout).setVisibility(View.GONE);
+        }
+    }
     }
 
     public void GoHighscores(View view) {
@@ -202,7 +226,7 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
             Intent intent = new Intent(this, Highscores.class);
             //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
             startActivity(intent);
-        }else {
+        } else {
             mSignInClicked = true;
             mGoogleApiClient.connect();
         }
@@ -227,12 +251,15 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN);
-        }
+    public void onConnected(Bundle bundle) {
+        Button Loginbtn = (Button) findViewById(R.id.buttonLogin);
+        Loginbtn.setVisibility(View.GONE);
+        Button Logoutbtn = (Button) findViewById(R.id.buttonLogout);
+        Logoutbtn.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
 
     }
 
@@ -292,7 +319,7 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
             if (reply.equals("Highscore saved")) {
                 if (mGoogleApiClient.isConnected()) {
                     Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_beat_that));
-                }else{
+                } else {
 
                 }
             }
