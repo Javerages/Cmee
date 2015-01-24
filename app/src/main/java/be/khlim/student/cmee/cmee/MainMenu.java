@@ -19,6 +19,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.internal.game.GameBadge;
 import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
@@ -207,9 +208,8 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
         if (mGoogleApiClient != null) {
             if (!mGoogleApiClient.isConnected()){
                 mSignInClicked = true;
-            mGoogleApiClient.connect();
+                mGoogleApiClient.connect();
         } else {
-            Games.signOut(mGoogleApiClient);
             mGoogleApiClient.disconnect();
             findViewById(R.id.buttonLogin).setVisibility(View.VISIBLE);
             findViewById(R.id.buttonLogout).setVisibility(View.GONE);

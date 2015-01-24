@@ -626,8 +626,9 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                     }
                 }
             }
-
         }
+
+        RefreshMap();
     }
 
     @Override
@@ -647,7 +648,6 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        RefreshMap();
         return false;
     }
 
