@@ -1,5 +1,6 @@
 package be.khlim.student.cmee.cmee;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -298,6 +299,16 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
         }
     }
 
+
+    public static boolean isMockSettingsON(Context context) {
+        // returns true if mock location enabled, false if not enabled.
+        if (Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ALLOW_MOCK_LOCATION).equals("0"))
+            return false;
+        else
+            return true;
+    }
+
     /**
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
@@ -589,7 +600,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                     Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
                 }*/
 
-                if(mGoogleApiClient.isConnected()){
+                if(mGoogleApiClient.isConnected() ){
                     Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
                     Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
                     Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
