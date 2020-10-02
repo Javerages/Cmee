@@ -3,12 +3,9 @@ package be.khlim.student.cmee.cmee;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Loader;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -27,12 +24,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.plus.Plus;
 
-import org.apache.http.HttpResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+/*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -40,18 +43,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.http.message.BasicNameValuePair;*/
 
 
 /**
  * A login screen that offers login via email/password.
  */
-public class Login extends Activity implements LoaderCallbacks<Cursor> {
+public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
 
     /**
@@ -399,47 +397,17 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             showProgress(false);
         }
 
+/**
+* Used to login on cmee.yzi.me - logic replaced by googleAPI call
+* */
         public boolean AskServer(String username, String pass) throws IOException {
 
-            Boolean success = false;
-            // Instantiate the Request.
-            HttpClient req = new DefaultHttpClient();
-            HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/login");
-            //param.addHeader("username",username);
-            //param.addHeader("password",pass);
-            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-            nameValuePairs.add(new BasicNameValuePair("username", username));
-            nameValuePairs.add(new BasicNameValuePair("password", pass));
-            param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-            HttpResponse response = req.execute(param);
-
-            StatusLine statusLine = response.getStatusLine();
-            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                response.getEntity().writeTo(out);
-                out.close();
-                String responseString = out.toString();
-                App globalVariable = (App) getApplicationContext();
-
-                if (isInteger(responseString)) {//mProgressView.post();
-                    globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
                     //TODO: Check if user has score online
-                    success = true;
                     if (mGoogleApiClient.isConnected()) {
                         Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_a_new_explorer));
                     }
-                } else {
-                    SendToast(responseString);
-                }
-            } else {
-                success = false;
-                //Closes the connection.
-                response.getEntity().getContent().close();
-                throw new IOException(statusLine.getReasonPhrase());
-            }
 
-            return success;
+            return true;
         }
     }
 
@@ -494,10 +462,14 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
             showProgress(false);
         }
 
+        /**
+         * OLD API call to site site no longer exists so no longer used
+         * Was poorly implemented anyways
+         * */
         public boolean AskServer(String username, String pass) throws IOException {
 
             Boolean success = false;
-            // Instantiate the Request.
+           /* // Instantiate the Request.
             HttpClient req = new DefaultHttpClient();
             HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/register");
             //param.addHeader("username",username);
@@ -528,7 +500,7 @@ public class Login extends Activity implements LoaderCallbacks<Cursor> {
                 //Closes the connection.
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
-            }
+            }*/
 
             return success;
         }

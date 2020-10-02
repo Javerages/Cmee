@@ -20,29 +20,29 @@
 <resources>
 
     <style name="Theme.Yellowbar" parent="@android:style/Theme.Holo.Light">
-        <item name="android:actionBarItemBackground">@drawable/selectable_background_yellowbar</item>
-        <item name="android:popupMenuStyle">@style/PopupMenu.Yellowbar</item>
-        <item name="android:dropDownListViewStyle">@style/DropDownListView.Yellowbar</item>
-        <item name="android:actionBarTabStyle">@style/ActionBarTabStyle.Yellowbar</item>
-        <item name="android:actionDropDownStyle">@style/DropDownNav.Yellowbar</item>
-        <item name="android:actionBarStyle">@style/ActionBar.Solid.Yellowbar</item>
-        <item name="android:actionModeBackground">@drawable/cab_background_top_yellowbar</item>
-        <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom_yellowbar</item>
-        <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Yellowbar</item>
+        <item name="actionBarItemBackground">@drawable/selectable_background_yellowbar</item>
+        <item name="popupMenuStyle">@style/PopupMenu.Yellowbar</item>
+        <item name="dropDownListViewStyle">@style/DropDownListView.Yellowbar</item>
+        <item name="actionBarTabStyle">@style/ActionBarTabStyle.Yellowbar</item>
+        <item name="actionDropDownStyle">@style/DropDownNav.Yellowbar</item>
+        <item name="actionBarStyle">@style/ActionBar.Solid.Yellowbar</item>
+        <item name="actionModeBackground">@drawable/cab_background_top_yellowbar</item>
+        <item name="actionModeSplitBackground">@drawable/cab_background_bottom_yellowbar</item>
+        <item name="actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Yellowbar</item>
         
         
     </style>
 
     <style name="ActionBar.Solid.Yellowbar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid">
-        <item name="android:background">@drawable/ab_solid_yellowbar</item>
-        <item name="android:backgroundStacked">@drawable/ab_stacked_solid_yellowbar</item>
-        <item name="android:backgroundSplit">@drawable/ab_bottom_solid_yellowbar</item>
-        <item name="android:progressBarStyle">@style/ProgressBar.Yellowbar</item>
+        <item name="background">@drawable/ab_solid_yellowbar</item>
+        <item name="backgroundStacked">@drawable/ab_stacked_solid_yellowbar</item>
+        <item name="backgroundSplit">@drawable/ab_bottom_solid_yellowbar</item>
+        <item name="progressBarStyle">@style/ProgressBar.Yellowbar</item>
     </style>
 
     <style name="ActionBar.Transparent.Yellowbar" parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">@drawable/ab_transparent_yellowbar</item>
-        <item name="android:progressBarStyle">@style/ProgressBar.Yellowbar</item>
+        <item name="background">@drawable/ab_transparent_yellowbar</item>
+        <item name="progressBarStyle">@style/ProgressBar.Yellowbar</item>
     </style>
 
     <style name="PopupMenu.Yellowbar" parent="@android:style/Widget.Holo.Light.ListPopupWindow">
@@ -54,11 +54,11 @@
     </style>
 
     <style name="ActionBarTabStyle.Yellowbar" parent="@android:style/Widget.Holo.Light.ActionBar.TabView">
-        <item name="android:background">@drawable/tab_indicator_ab_yellowbar</item>
+        <item name="background">@drawable/tab_indicator_ab_yellowbar</item>
     </style>
 
     <style name="DropDownNav.Yellowbar" parent="@android:style/Widget.Holo.Light.Spinner">
-        <item name="android:background">@drawable/spinner_background_ab_yellowbar</item>
+        <item name="background">@drawable/spinner_background_ab_yellowbar</item>
         <item name="android:popupBackground">@drawable/menu_dropdown_panel_yellowbar</item>
         <item name="android:dropDownSelector">@drawable/selectable_background_yellowbar</item>
     </style>
@@ -68,13 +68,13 @@
     </style>
     
     <style name="ActionButton.CloseMode.Yellowbar" parent="@android:style/Widget.Holo.Light.ActionButton.CloseMode">
-        <item name="android:background">@drawable/btn_cab_done_yellowbar</item>
+        <item name="background">@drawable/btn_cab_done_yellowbar</item>
     </style>
 
     <!-- this style is only referenced in a Light.DarkActionBar based theme -->
     <style name="Theme.Yellowbar.Widget" parent="@android:style/Theme.Holo">
-        <item name="android:popupMenuStyle">@style/PopupMenu.Yellowbar</item>
-        <item name="android:dropDownListViewStyle">@style/DropDownListView.Yellowbar</item>
+        <item name="popupMenuStyle">@style/PopupMenu.Yellowbar</item>
+        <item name="dropDownListViewStyle">@style/DropDownListView.Yellowbar</item>
     </style>
 
 </resources>

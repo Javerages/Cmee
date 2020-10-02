@@ -1,8 +1,8 @@
 package be.khlim.student.cmee.cmee;
 
-import android.app.Activity;
-import android.app.Fragment;
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,16 +14,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
-import com.google.android.gms.games.internal.game.GameBadge;
 import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
-import org.apache.http.HttpResponse;
+/*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -32,15 +35,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.http.message.BasicNameValuePair;*/
 
 
-public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private static int RC_SIGN_IN = 9001;
     PostScoreTask Postscore = null;
     private GoogleApiClient mGoogleApiClient;
@@ -158,6 +156,7 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
         if (requestCode == RC_SIGN_IN) {
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
@@ -179,9 +178,20 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
     }
 
     public void GoPlay(View view) {
-        Intent intent = new Intent(this, Game.class);
-        //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
-        startActivity(intent);
+
+        //request permissions if needed
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.VIBRATE,Manifest.permission.ACCESS_NETWORK_STATE,Manifest.permission.INTERNET},
+                    2);
+        } else {
+            Intent intent = new Intent(this, Game.class);
+            //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+            startActivity(intent);
+        }
+
     }
 
     public void GoSettings(View view) {
@@ -204,6 +214,15 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
       /*  Intent intent = new Intent(this, Login.class);
         //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
         startActivity(intent);*/
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.GET_ACCOUNTS,Manifest.permission.READ_CONTACTS},
+                    2);
+        } else {
+
+        }
 
         if (mGoogleApiClient != null) {
             if (!mGoogleApiClient.isConnected()){
@@ -338,8 +357,11 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
             });
         }
 
+        /**
+         * old class to post score to website - bad implementation -feelsbadman (use google services instead)
+         * */
         public void postScore(String type) {
-
+            /*
             // Create a new HttpClient and Post Header
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/setAllhighscores");
@@ -372,7 +394,7 @@ public class MainMenu extends Activity implements GoogleApiClient.OnConnectionFa
                 // TODO Auto-generated catch block
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-            }
+            }*/
         }
     }
 

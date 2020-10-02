@@ -6,7 +6,9 @@
     tools:context=".Highscores"
     tools:ignore="MergeRootFrame" >
 
-    <fragment android:name="be.khlim.student.cmee.cmee.Highscores$PlaceholderFragment"
+    <fragment
+        android:id="@+id/Highscores"
+        android:name="be.khlim.student.cmee.cmee.Highscores$PlaceholderFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/adFragment" />

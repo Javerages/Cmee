@@ -1,6 +1,5 @@
 package be.khlim.student.cmee.cmee;
 
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,12 +15,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.Settings;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.GestureDetectorCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GestureDetectorCompat;
+import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -30,6 +32,8 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -39,7 +43,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
-import org.apache.http.HttpResponse;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Vector;
+
+/*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -48,20 +57,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.message.BasicNameValuePair;*/
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Vector;
-
-public class Game extends FragmentActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
+public class Game extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         GestureDetector.OnGestureListener,
-        GestureDetector.OnDoubleTapListener, GoogleMap.OnMapClickListener {
+        GestureDetector.OnDoubleTapListener, GoogleMap.OnMapClickListener, OnMapReadyCallback {
 
     // Update frequency in seconds
     public static final int UPDATE_INTERVAL_IN_SECONDS = 20;
@@ -110,8 +111,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDetector = new GestureDetectorCompat(this, this);
         // Set the gesture detector as the double tap
         // listener.
@@ -266,7 +266,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
      * call {@link #setUpMap()} once when {@link #mMap} is not null.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
-     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
+     * {@link MapView MapView}) will show a prompt for the user to
      * install/update the Google Play services APK on their device.
      * <p/>
      * A user can return to this FragmentActivity after following the prompt and correctly
@@ -280,12 +280,21 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
             // Try to obtain the map from the SupportMapFragment.
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap();
+            SupportMapFragment MapFrag =((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
+            if(MapFrag != null){
+            MapFrag.getMapAsync(this);
             }
+
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap){
+        mMap = googleMap;
+        if (mMap != null) {
+                setUpMap();
+        }else{
+            //just let it crash if it could not fetch the map
         }
     }
 
@@ -313,20 +322,22 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     public void onConnected(Bundle bundle) {
 
         if (mGoogleApiClient.isConnected()) {
-
+            try {
+                /*CHECK LOCATION*/
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, locReq, this);
+
+            }catch(SecurityException ex){
+                //TODO::handle securityexception
+            }
             // Display the connection status
             //Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
             // If already requested, start periodic updates #error#
 
             ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-            NetworkInfo internet = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-            if (!internet.isConnected()) {
-                internet = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-                if (!internet.isConnected()) {
+            NetworkInfo activeNetwork = connManager.getActiveNetworkInfo();
+            if (activeNetwork == null || !activeNetwork.isConnected()) {
                     Toast.makeText(this, "Enable internet connection for map", Toast.LENGTH_SHORT).show();
-                }
             }
 
             if (radius > 10000) {
@@ -372,6 +383,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
+        super.onActivityResult(requestCode,resultCode,intent);
         if (requestCode == RC_SIGN_IN) {
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
@@ -765,9 +777,14 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
             });
         }
 
+        /**
+         *
+         * Old way of posting score -sit no longer online
+         *
+         * */
         public void postScore(String type) {
             // Create a new HttpClient and Post Header
-            HttpClient httpclient = new DefaultHttpClient();
+            /*HttpClient httpclient = new DefaultHttpClient();
             HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/setAllhighscores");
 
             try {
@@ -798,7 +815,7 @@ public class Game extends FragmentActivity implements com.google.android.gms.loc
                 // TODO Auto-generated catch block
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-            }
+            }*/
         }
     }
 

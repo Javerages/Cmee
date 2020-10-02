@@ -6,7 +6,9 @@
     tools:context=".MainMenu"
     tools:ignore="MergeRootFrame" >
 
-    <fragment android:name="be.khlim.student.cmee.cmee.MainMenu$PlaceholderFragment"
+    <fragment
+        android:id="@+id/MainMenu"
+        android:name="be.khlim.student.cmee.cmee.MainMenu$PlaceholderFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/adFragment" />

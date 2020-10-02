@@ -1,15 +1,15 @@
 package be.khlim.student.cmee.cmee;
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -20,7 +20,7 @@ import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
 
-public class Highscores extends Activity implements GoogleApiClient.OnConnectionFailedListener {
+public class Highscores extends FragmentActivity implements GoogleApiClient.OnConnectionFailedListener {
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingConnectionFailure = false;
     private boolean mAutoStartSignInflow = true;
@@ -76,6 +76,7 @@ public class Highscores extends Activity implements GoogleApiClient.OnConnection
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
         if (requestCode == RC_SIGN_IN) {
             mSignInClicked = false;
             mResolvingConnectionFailure = false;

@@ -1,32 +1,38 @@
 apply plugin: 'com.android.application'
 android {
-    compileSdkVersion 23
-    buildToolsVersion '20.0.0'
+    signingConfigs {
+    }
 
     defaultConfig {
-        applicationId "be.khlim.student.cmee.cmee"
+        applicationId 'cmee.yzi.me'
         minSdkVersion 23
-        targetSdkVersion 23
+        compileSdkVersion 29
         versionCode 10
-        versionName "2.9"
+        versionName "3.0"
+        //multiDexEnabled true
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':BaseGameUtils')
-    compile 'com.google.android.gms:play-services:8.4.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':BaseGameUtils')
+    implementation 'com.google.android.gms:play-services-games:20.0.1'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.android.support:support-v4'
+    implementation 'com.google.android.gms:play-services-base:17.4.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
+    implementation 'com.google.android.gms:play-services-ads:17.2.0'
+    implementation 'com.google.android.gms:play-services-auth:17.0.0'
+    implementation 'com.google.android.gms:play-services-plus:17.0.0'
+    implementation 'com.google.android.gms:play-services-gcm:17.0.0'
+    implementation 'com.google.firebase:firebase-auth:17.0.0'
+    //implementation 'com.android.support:multidex:1.0.3'
 
-    compile "com.android.support:appcompat-v7"
-    compile "com.android.support:support-v4"
-    compile 'com.google.android.gms:play-services-ads:8.4.0'
-    compile 'com.google.android.gms:play-services-auth:8.4.0'
-    compile 'com.google.android.gms:play-services-gcm:8.4.0'
 }
