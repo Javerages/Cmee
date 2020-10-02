@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.location.Location;
 

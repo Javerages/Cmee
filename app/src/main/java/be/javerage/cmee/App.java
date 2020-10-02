@@ -1,8 +1,7 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.app.Application;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 
 import java.text.SimpleDateFormat;

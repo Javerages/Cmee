@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.Manifest;
 import android.content.Intent;
@@ -21,10 +21,15 @@ import androidx.fragment.app.Fragment;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
+
+import be.javerage.cmee.cmee.cmee.R;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -67,7 +72,8 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);}
+                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
     }
 
     @Override
@@ -148,6 +154,7 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
                     mGoogleApiClient, connectionResult,
                     RC_SIGN_IN, "Error")) {
                 mResolvingConnectionFailure = false;
+
             }
         }
         //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
@@ -178,13 +185,17 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
     }
 
     public void GoPlay(View view) {
+        int googlePlayServicesIsAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext());
+            if (ConnectionResult.SUCCESS != googlePlayServicesIsAvailable) {
+                //TODO:: treat error
+            }
 
         //request permissions if needed
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.VIBRATE,Manifest.permission.ACCESS_NETWORK_STATE,Manifest.permission.INTERNET},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.VIBRATE, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET},
                     2);
         } else {
             Intent intent = new Intent(this, Game.class);
@@ -218,22 +229,22 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
                 != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.GET_ACCOUNTS,Manifest.permission.READ_CONTACTS},
+                    new String[]{Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_CONTACTS},
                     2);
         } else {
 
         }
 
         if (mGoogleApiClient != null) {
-            if (!mGoogleApiClient.isConnected()){
+            if (!mGoogleApiClient.isConnected()) {
                 mSignInClicked = true;
                 mGoogleApiClient.connect();
-        } else {
-            mGoogleApiClient.disconnect();
-            findViewById(R.id.buttonLogin).setVisibility(View.VISIBLE);
-            findViewById(R.id.buttonLogout).setVisibility(View.GONE);
+            } else {
+                mGoogleApiClient.disconnect();
+                findViewById(R.id.buttonLogin).setVisibility(View.VISIBLE);
+                findViewById(R.id.buttonLogout).setVisibility(View.GONE);
+            }
         }
-    }
     }
 
     public void GoHighscores(View view) {
@@ -359,7 +370,7 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
 
         /**
          * old class to post score to website - bad implementation -feelsbadman (use google services instead)
-         * */
+         */
         public void postScore(String type) {
             /*
             // Create a new HttpClient and Post Header
@@ -391,9 +402,9 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
                     }
                 }
             } catch (ClientProtocolException e) {
-                // TODO Auto-generated catch block
+                // Auto-generated catch block
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                // Auto-generated catch block
             }*/
         }
     }

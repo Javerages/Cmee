@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 /**
  * Created by Elsen on 27/12/2014.

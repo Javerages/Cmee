@@ -1,6 +1,4 @@
-package be.khlim.student.cmee.cmee;
-
-import android.location.Location;
+package be.javerage.cmee;
 
 import com.google.android.gms.maps.model.LatLng;
 

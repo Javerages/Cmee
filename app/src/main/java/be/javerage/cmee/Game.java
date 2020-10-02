@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,7 +24,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -48,6 +47,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
+
+import be.javerage.cmee.cmee.cmee.BuildConfig;
+import be.javerage.cmee.cmee.cmee.R;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;

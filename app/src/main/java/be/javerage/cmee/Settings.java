@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -19,6 +19,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NavUtils;
 
 import java.util.List;
+
+import be.javerage.cmee.cmee.cmee.R;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On

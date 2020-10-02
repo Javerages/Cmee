@@ -3,21 +3,20 @@
 
     <string name="google_maps_key_instructions">
         <!--
-    TODO: Before you run your application, you need a Google Maps API key.
+    Before you run your application, you need a Google Maps API key.
 
     To get one, follow this link, follow the directions and press "Create" at the end:
 
 https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=FC:7C:8B:D2:F9:49:1D:C1:78:B6:18:70:B3:7A:B8:EA:BF:40:31:F7%3Bbe.khlim.student.cmee.cmee
 
     You can also add your credentials to an existing key, using this line:
-    FC:7C:8B:D2:F9:49:1D:C1:78:B6:18:70:B3:7A:B8:EA:BF:40:31:F7;be.khlim.student.cmee.cmee
+    FC:7C:8B:D2:F9:49:1D:C1:78:B6:18:70:B3:7A:B8:EA:BF:40:31:F7;javerage.cmeecmee.javerage.cmee
 
     Once you have your key (it starts with "AIza"), replace the "google_maps_key"
     string in this file.
         -->
     </string>
-
-    <string name="google_maps_keyrelease" templateMergeStrategy="preserve">AIzaSyCKC5U55bFe6bJTHifDtZRd6OHTBYcvofo</string> <!--release (put in different file in release folder)-->
-    <string name="google_maps_key" templateMergeStrategy="preserve">AIzaSyCYR61uYsSa5ZkAF03Ml8iuNvw76Q7sI_Q</string> <!--debug-->
+    <string name="google_maps_keyrelease" templateMergeStrategy="preserve">AIzaSyDN-RJ7FP990wiycg_gjF-qxUJD8ESvADg</string> <!--not used ->see release build variant folder)-->
+    <string name="google_maps_key" templateMergeStrategy="preserve">AIzaSyB3tX-A3LZpD3y6q-eXyqXJLnGm4SE7bI4</string> <!--debug-->
 
 </resources>

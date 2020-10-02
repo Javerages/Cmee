@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -34,6 +34,8 @@ import com.google.android.gms.plus.Plus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import be.javerage.cmee.cmee.cmee.R;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -232,12 +234,10 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
         return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
         return password.length() > 5;
     }
 
@@ -398,7 +398,7 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
         }
 
 /**
-* Used to login on cmee.yzi.me - logic replaced by googleAPI call
+* Used to login on javerage.cmee.yzi.me - logic replaced by googleAPI call
 * */
         public boolean AskServer(String username, String pass) throws IOException {
 

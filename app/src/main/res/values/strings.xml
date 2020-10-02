@@ -13,7 +13,6 @@
     <string name="LoginButtonText">Login</string>
     <string name="LogoutButtonText">Logout</string>
     <string name="HighscoreButtonText">Highscores</string>
-    <string name="banner_ad_unit_id">ca-app-pub-7549719204495848/3267836307</string>
     <string name="title_activity_highscores">Highscores</string>
 
 </resources>

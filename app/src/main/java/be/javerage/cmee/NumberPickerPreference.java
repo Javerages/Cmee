@@ -1,4 +1,4 @@
-package be.khlim.student.cmee.cmee;
+package be.javerage.cmee;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -8,13 +8,12 @@ import android.util.AttributeSet;
 /**
  * Created by Elsen on 28/12/2014.
  */
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
-import android.preference.DialogPreference;
-import android.util.AttributeSet;
 import android.view.View;
 import android.widget.NumberPicker;
+
+import be.javerage.cmee.cmee.cmee.R;
 
 public class NumberPickerPreference extends DialogPreference {
 

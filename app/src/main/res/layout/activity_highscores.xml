@@ -3,19 +3,19 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Highscores"
+    tools:context="be.javerage.cmee.Highscores"
     tools:ignore="MergeRootFrame" >
 
     <fragment
         android:id="@+id/Highscores"
-        android:name="be.khlim.student.cmee.cmee.Highscores$PlaceholderFragment"
+        android:name="be.javerage.cmee.Highscores$PlaceholderFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/adFragment" />
 
     <fragment
         android:id="@+id/adFragment"
-        android:name="be.khlim.student.cmee.cmee.MainMenu$AdFragment"
+        android:name="be.javerage.cmee.MainMenu$AdFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />

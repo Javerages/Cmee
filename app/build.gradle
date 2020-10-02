@@ -4,7 +4,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'cmee.yzi.me'
+        applicationId 'be.javerage.cmee'
         minSdkVersion 23
         compileSdkVersion 29
         versionCode 10
@@ -15,7 +15,16 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue "string", "google_maps_api_key", "AIzaSyDN-RJ7FP990wiycg_gjF-qxUJD8ESvADg"
+            debuggable releaseDebuggable
         }
+        debug {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue "string", "google_maps_api_key", "[YOUR DEV KEY]"
+            debuggable debugDebuggable
+        }
+
     }
 }
 

@@ -8,14 +8,14 @@
 
     <fragment
         android:id="@+id/MainMenu"
-        android:name="be.khlim.student.cmee.cmee.MainMenu$PlaceholderFragment"
+        android:name="be.javerage.cmee.MainMenu$PlaceholderFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/adFragment" />
 
     <fragment
         android:id="@+id/adFragment"
-        android:name="be.khlim.student.cmee.cmee.MainMenu$AdFragment"
+        android:name="be.javerage.cmee.MainMenu$AdFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />

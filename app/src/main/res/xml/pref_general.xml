@@ -22,7 +22,7 @@
         android:negativeButtonText="@null"
         android:positiveButtonText="@null" />
 
-    <be.khlim.student.cmee.cmee.NumberPickerPreference
+    <be.javerage.cmee.NumberPickerPreference
         android:key="NrOfPoints"
         android:title="#Points"
         android:defaultValue="@string/pref_default_Points"
