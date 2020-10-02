@@ -415,7 +415,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
 
     @Override
     public void onLocationChanged(Location location) {
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient.isConnected()) {//todo:: make it so that play api is not required
             Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_i_started_it), 1);
             for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetIsMe()) {

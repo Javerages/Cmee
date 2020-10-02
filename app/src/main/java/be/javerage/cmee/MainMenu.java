@@ -229,10 +229,10 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
                 != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_CONTACTS},
+                    new String[]{Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     2);
         } else {
-
+        //Error?
         }
 
         if (mGoogleApiClient != null) {
@@ -259,6 +259,7 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         } else {
             mSignInClicked = true;
             mGoogleApiClient.connect();
+            Toast.makeText(getApplicationContext(), "Connecting", Toast.LENGTH_SHORT).show();
         }
 
       /*  App globalVariable = (App) getApplicationContext();
