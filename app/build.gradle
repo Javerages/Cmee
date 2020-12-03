@@ -7,8 +7,8 @@ android {
         applicationId 'be.javerage.cmee'
         minSdkVersion 23
         compileSdkVersion 29
-        versionCode 11
-        versionName "IAmSoMadAtMyself"
+        versionCode 14
+        versionName "Bugfix"
         //multiDexEnabled true
     }
     buildTypes {

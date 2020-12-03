@@ -164,6 +164,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                     ArrayList<LatLng> pointList = savedInstanceState.getParcelableArrayList("points");
                     boolean[] capList = savedInstanceState.getBooleanArray("Captures");
                     if (pointList != null) {
+                        nrOfPoints = pointList.size();
                         for (int i = 0; i < pointList.size(); i++) {
                             LatLng tmp = pointList.get(i);
                             Capturepoints.add(new Capturepoint(i, tmp.longitude, tmp.latitude));
@@ -323,7 +324,9 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
             mMap.getUiSettings().setCompassEnabled(true);
             mMap.getUiSettings().setZoomControlsEnabled(true);
 
-            Players.add(new Player(Player.Teams.None, null, true));
+            if(Players.size()<1) {
+                Players.add(new Player(Player.Teams.None, null, true));//setup me
+            }
 
             if (mGoogleApiClient.isConnected()) {
                 RefreshMap();
@@ -417,13 +420,13 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     public void onLocationChanged(Location location) {
         if (mGoogleApiClient.isConnected()) {//todo:: make it so that play api is not required
             Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_i_started_it), 1);
-            for (int i = 0; i < Players.size(); i++) {
-                if (Players.elementAt(i).GetIsMe()) {
-                    Players.elementAt(i).SetLocation(location);
+            for(Player player:Players) {
+                if (player.GetIsMe()) {
+                    player.SetLocation(location);
                     if (!playing) {
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(i).GetY(),
-                                                Players.elementAt(i).GetX()),
+                                CameraPosition.fromLatLngZoom(new LatLng(player.GetY(),
+                                                player.GetX()),
                                         (float) (17f / Math.pow(radius / 10, 0.15))
                                 )));
                     }
@@ -508,10 +511,18 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                     Drawable d = getResources().getDrawable(R.drawable.ic_launcher);
                     BitmapDrawable bd = (BitmapDrawable) d.getCurrent();
                     Bitmap b = bd.getBitmap();
-                    Bitmap bhalfsize = Bitmap.createScaledBitmap(b, ((b.getWidth() - 100) - 2 * (int) mMap.getCameraPosition().zoom), ((b.getHeight() - 100) - 2 * (int) mMap.getCameraPosition().zoom), false);
+                    int renderWidth = 100 -2 * (int) mMap.getCameraPosition().zoom;
+                    int renderHeight = 100 - 2 * (int) mMap.getCameraPosition().zoom;
+
+                    if (renderWidth <=0 || renderHeight <=0){
+                        renderWidth = 100;
+                        renderHeight = 100;
+                    }
+
+                    Bitmap bHalfsize = Bitmap.createScaledBitmap(b,renderWidth , renderHeight, false);
 
                     mMap.addMarker(new MarkerOptions()
-                            .icon(BitmapDescriptorFactory.fromBitmap(bhalfsize))
+                            .icon(BitmapDescriptorFactory.fromBitmap(bHalfsize))
                             .anchor(center, center)
                             .position(new LatLng(Players.elementAt(i).GetY(), Players.elementAt(i).GetX())));
                     // Toast.makeText(this, "P Location gotten :" + Players.elementAt(i).GetX() + " " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
@@ -538,35 +549,36 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
         App globalVariable = (App) getApplicationContext();
         int Nrcaptured = 0; //If captured=true -> counter rises -> if counter >= nrOfPoints -> All capped: End game
 
-        for (int i = 0; i < Players.size(); i++) {
+        for(Player player:Players) {
             for (int j = 0; j < Capturepoints.size(); j++) {
-                if (!Capturepoints.elementAt(j).Captured()) {
+                if (!Capturepoints.elementAt(j).Captured()) {// if not captured -> check if hit
 
                     float[] dist = new float[4];
-                    Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), Players.elementAt(i).GetY(), Players.elementAt(i).GetX(), dist);
+                    Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), player.GetY(), player.GetX(), dist);
                     //Captrue if accmod is in orde
                     if (dist[0] < PointSize) {
 
-                        if (accuracy < 60) {
-                            Capturepoints.elementAt(j).Capture();
+                        if (accuracy < 60) {// if hit capture point and add hit
+                            Capturepoints.elementAt(j).Capture(); //todo:: add player with score calc
                             Nrcaptured += 1;
                             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                                     CameraPosition.fromLatLngZoom(new LatLng(Capturepoints.elementAt(j).GetY(),
                                                     Capturepoints.elementAt(j).GetX()),
                                             (float) (17f / Math.pow(radius / 10, 0.15))
                                     )));
-                            if (Players.elementAt(i).GetIsMe()) {
+                            if (player.GetIsMe()) {
                                 Toast.makeText(this, "Point " + Capturepoints.elementAt(j).GetIndex() + " Captured", Toast.LENGTH_LONG).show();
                                 Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
                                 // Vibrate for 500 milliseconds
                                 v.vibrate(500);
-                                Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_generation_i), 1);
-                                if (radius <= 100) {
-                                    globalVariable.MainUser().AddScore(radius / 10);
-                                } else {
-                                    globalVariable.MainUser().AddScore(50);
+                                if(!isMockSettingsON(getApplicationContext()) || BuildConfig.DEBUG) { //if cheats -> don't count score (except when debugging)
+                                    Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_generation_i), 1);
+                                    if (radius <= 100) {
+                                        globalVariable.MainUser().AddScore(radius / 10);
+                                    } else {
+                                        globalVariable.MainUser().AddScore(50);
+                                    }
                                 }
-
                             }
                         } else {
                             Toast.makeText(this, "GPS not accurate enough to capture", Toast.LENGTH_SHORT).show();
@@ -574,14 +586,14 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                     }
 
                 } else {
-                    Nrcaptured += 1;
+                    Nrcaptured += 1;//count the previously captured
                 }
             }
 
             //End game
             if (Nrcaptured >= nrOfPoints) {
                 if (!deletedpoint){
-                if (radius <= 1000) {
+                if (radius <= 1000) { //if you caught all points fair and square -> calculate bonus points
                     globalVariable.MainUser().AddScore((radius / 10) * nrOfPoints / 2);
                 } else {
                     globalVariable.MainUser().AddScore((radius / 100) * nrOfPoints / 2);
@@ -647,7 +659,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
 
                     if (capthis){
                         capthis = false;
-                        Capturepoints.elementAt(j).Capture();
+                        Capturepoints.elementAt(j).Skip();
                     }
                 }
             }
@@ -684,13 +696,26 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     @Override
     public boolean onDoubleTapEvent(MotionEvent e) {
         CheckHits(Pointsize, 0);
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetY(),
-                                Players.elementAt(0).GetX()),
-                        (float) (17f / Math.pow(radius / 10, 0.15))
-                )));
+        if (Players.elementAt(0).GetLocation() != null) {
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetY(),
+                                    Players.elementAt(0).GetX()),
+                            (float) (17f / Math.pow(radius / 10, 0.15))
+                    )));
+        }
         RefreshMap();
         return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+        if (Players.elementAt(0).GetLocation() != null) {
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetX(),
+                                    Players.elementAt(0).GetY()),
+                            (float) (17f / Math.pow(radius / 10, 0.15))
+                    )));
+        }
     }
 
     @Override
@@ -711,15 +736,6 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         return false;
-    }
-
-    @Override
-    public void onLongPress(MotionEvent e) {
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetX(),
-                                Players.elementAt(0).GetY()),
-                        (float) (17f / Math.pow(radius / 10, 0.15))
-                )));
     }
 
     @Override

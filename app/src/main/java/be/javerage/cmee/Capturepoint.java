@@ -9,6 +9,7 @@ public class Capturepoint extends Point{
 
     private int index = 0;
     private boolean captured;
+    private boolean skipped;
     private LatLng loc_;
 
     public Capturepoint(int index, double x, double y)
@@ -36,5 +37,10 @@ public class Capturepoint extends Point{
     public void Capture()
     {
         this.captured = true;
+    }
+    public void Skip()
+    {
+        this.captured = true;
+        this.skipped = true;
     }
 }

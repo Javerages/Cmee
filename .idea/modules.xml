@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BaseGameUtils/BaseGameUtils.iml" filepath="$PROJECT_DIR$/.idea/modules/BaseGameUtils/BaseGameUtils.iml" group="Cmee/BaseGameUtils" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Cmee.iml" filepath="$PROJECT_DIR$/.idea/modules/Cmee.iml" group="Cmee" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="Cmee/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Cmee.iml" filepath="$PROJECT_DIR$/.idea/modules/Cmee.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.iml" filepath="$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Cmee.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Cmee.app.iml" />
     </modules>
   </component>
 </project>
