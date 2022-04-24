@@ -5,10 +5,10 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        minSdkVersion 23
-        compileSdkVersion 29
-        versionCode 14
-        versionName "Bugfix"
+        minSdkVersion 30
+        compileSdkVersion 30
+        versionCode 16
+        versionName "Privacy update"
         //multiDexEnabled true
     }
     buildTypes {
@@ -20,14 +20,14 @@ android {
         }
     }
     compileSdkVersion 31
-    buildToolsVersion '31.0.0'
+    buildToolsVersion '30.0.0'
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':BaseGameUtils')
-    implementation 'com.google.android.gms:play-services-games:20.0.1'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.gms:play-services-games:22.0.1'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.android.support:support-v4'
     implementation 'com.google.android.gms:play-services-base:18.0.1'
     implementation 'com.google.android.gms:play-services-maps:18.0.2'

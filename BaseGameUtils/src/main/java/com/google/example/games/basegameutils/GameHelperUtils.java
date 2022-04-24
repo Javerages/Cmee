@@ -42,8 +42,6 @@ class GameHelperUtils {
                 return "RESULT_CANCELED";
             case GamesActivityResultCodes.RESULT_APP_MISCONFIGURED:
                 return "RESULT_APP_MISCONFIGURED";
-            case GamesActivityResultCodes.RESULT_LEFT_ROOM:
-                return "RESULT_LEFT_ROOM";
             case GamesActivityResultCodes.RESULT_LICENSE_FAILED:
                 return "RESULT_LICENSE_FAILED";
             case GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED:
@@ -161,8 +159,8 @@ class GameHelperUtils {
         int unsigned_byte = b < 0 ? b + 256 : b;
         int hi = unsigned_byte / 16;
         int lo = unsigned_byte % 16;
-        sb.append("0123456789ABCDEF".substring(hi, hi + 1));
-        sb.append("0123456789ABCDEF".substring(lo, lo + 1));
+        sb.append("0123456789ABCDEF".charAt(hi));
+        sb.append("0123456789ABCDEF".charAt(lo));
     }
 
     static String getString(Context ctx, int whichString) {

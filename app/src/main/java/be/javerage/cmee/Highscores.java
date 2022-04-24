@@ -8,8 +8,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -28,7 +28,7 @@ public class Highscores extends FragmentActivity implements GoogleApiClient.OnCo
     private boolean mAutoStartSignInflow = true;
     private boolean mSignInClicked = false;
 
-    private static int RC_SIGN_IN = 9001;
+    private static final int RC_SIGN_IN = 9001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,17 +136,14 @@ public class Highscores extends FragmentActivity implements GoogleApiClient.OnCo
         if (mSignInClicked || mAutoStartSignInflow) {
             mAutoStartSignInflow = false;
             mSignInClicked = false;
-            mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure using BaseGameUtils.
             // The R.string.signin_other_error value should reference a generic
             // error string in your strings.xml file, such as "There was
             // an issue with sign-in, please try again later."
-            if (!BaseGameUtils.resolveConnectionFailure(this,
+            mResolvingConnectionFailure = BaseGameUtils.resolveConnectionFailure(this,
                     mGoogleApiClient, connectionResult,
-                    RC_SIGN_IN, "Error")) {
-                mResolvingConnectionFailure = false;
-            }
+                    RC_SIGN_IN, "Error");
         }
         //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
     }
@@ -161,7 +158,7 @@ public class Highscores extends FragmentActivity implements GoogleApiClient.OnCo
         @Override
         public void onActivityCreated(Bundle bundle) {
             super.onActivityCreated(bundle);
-            AdView mAdView = (AdView) getView().findViewById(R.id.adView);
+            AdView mAdView = getView().findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
         }

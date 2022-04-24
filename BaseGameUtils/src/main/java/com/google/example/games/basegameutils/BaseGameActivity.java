@@ -18,8 +18,9 @@ package com.google.example.games.basegameutils;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -158,10 +159,6 @@ public abstract class BaseGameActivity extends AppCompatActivity implements
         Log.w(TAG, "BaseGameActivity.enabledDebugLog(bool,String) is " +
                 "deprecated. Use enableDebugLog(boolean)");
         enableDebugLog(enabled);
-    }
-
-    protected String getInvitationId() {
-        return mHelper.getInvitationId();
     }
 
     protected void reconnectClient() {

@@ -1,15 +1,11 @@
 package be.javerage.cmee;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
-
-/**
- * Created by Elsen on 28/12/2014.
- */
-import android.content.DialogInterface;
-import android.content.res.TypedArray;
 import android.view.View;
 import android.widget.NumberPicker;
 
@@ -32,7 +28,7 @@ public class NumberPickerPreference extends DialogPreference {
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
-        this.picker = (NumberPicker)view.findViewById(R.id.pref_num_picker);
+        this.picker = view.findViewById(R.id.pref_num_picker);
 
         SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
         int maxPoints = Integer.parseInt(preferences.getString("radius", "10"));

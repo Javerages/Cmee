@@ -22,8 +22,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.plus.Plus;
@@ -44,7 +42,7 @@ import org.apache.http.message.BasicNameValuePair;*/
 
 
 public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
-    private static int RC_SIGN_IN = 9001;
+    private static final int RC_SIGN_IN = 9001;
     PostScoreTask Postscore = null;
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingConnectionFailure = false;
@@ -80,14 +78,14 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
     protected void onResume() {
         super.onResume();
         App globalVariable = (App) getApplicationContext();
-        TextView mloginlbl = (TextView) findViewById(R.id.loggedIn);
+        TextView mloginlbl = findViewById(R.id.loggedIn);
         mloginlbl.setText("");
         if (globalVariable.MainUser().GetUserid() >= 0) {
             mloginlbl.setVisibility(View.VISIBLE);
             mloginlbl.setText("Logged in as " + globalVariable.MainUser().GetUsername());
         }
 
-        TextView mScoreView = (TextView) findViewById(R.id.Score);
+        TextView mScoreView = findViewById(R.id.Score);
         if (globalVariable.MainUser().GetScore() >= 0) {
             mScoreView.setVisibility(View.VISIBLE);
             mScoreView.setText("Score: " + globalVariable.MainUser().GetScore());
@@ -144,18 +142,14 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         if (mSignInClicked || mAutoStartSignInflow) {
             mAutoStartSignInflow = false;
             mSignInClicked = false;
-            mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure using BaseGameUtils.
             // The R.string.signin_other_error value should reference a generic
             // error string in your strings.xml file, such as "There was
             // an issue with sign-in, please try again later."
-            if (!BaseGameUtils.resolveConnectionFailure(this,
+            mResolvingConnectionFailure = BaseGameUtils.resolveConnectionFailure(this,
                     mGoogleApiClient, connectionResult,
-                    RC_SIGN_IN, "Error")) {
-                mResolvingConnectionFailure = false;
-
-            }
+                    RC_SIGN_IN, "Error");
         }
         //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
     }
@@ -169,9 +163,9 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
             mResolvingConnectionFailure = false;
             if (resultCode == RESULT_OK) {
                 mGoogleApiClient.connect();
-                Button Loginbtn = (Button) findViewById(R.id.buttonLogin);
+                Button Loginbtn = findViewById(R.id.buttonLogin);
                 Loginbtn.setVisibility(View.GONE);
-                Button Logoutbtn = (Button) findViewById(R.id.buttonLogout);
+                Button Logoutbtn = findViewById(R.id.buttonLogout);
                 Logoutbtn.setVisibility(View.VISIBLE);
             } else {
                 // Bring up an error dialog to alert the user that sign-in
@@ -283,9 +277,9 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
 
     @Override
     public void onConnected(Bundle bundle) {
-        Button Loginbtn = (Button) findViewById(R.id.buttonLogin);
+        Button Loginbtn = findViewById(R.id.buttonLogin);
         Loginbtn.setVisibility(View.GONE);
-        Button Logoutbtn = (Button) findViewById(R.id.buttonLogout);
+        Button Logoutbtn = findViewById(R.id.buttonLogout);
         Logoutbtn.setVisibility(View.VISIBLE);
     }
 
@@ -320,7 +314,7 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         @Override
         public void onActivityCreated(Bundle bundle) {
             super.onActivityCreated(bundle);
-            AdView mAdView = (AdView) getView().findViewById(R.id.adView);
+            AdView mAdView = getView().findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
         }
@@ -331,7 +325,7 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
     private class PostScoreTask extends AsyncTask<String, Void, Boolean> {
 
         private Exception exception;
-        private String reply = "No connection";
+        private final String reply = "No connection";
         private boolean finished = false;
 
         protected Boolean doInBackground(String... type) {

@@ -26,7 +26,7 @@ dependencies {
     /*implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.android.support:support-v4'*/
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.gms:play-services-games:17.0.0'
+    implementation 'com.google.android.gms:play-services-games:22.0.1'
     implementation 'com.google.android.gms:play-services-plus:17.0.0'
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
