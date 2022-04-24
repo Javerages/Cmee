@@ -9,59 +9,53 @@
     tools:context="be.javerage.cmee.Highscores$PlaceholderFragment">
 
     <LinearLayout
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:weightSum="2"
-    android:layout_centerHorizontal="true">
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical"
+        android:weightSum="2">
 
 
-
-    <ScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/scrollView"
-        android:layout_gravity="center_horizontal">
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:orientation="vertical"
             android:weightSum="2">
 
 
-
             <Button
+                android:id="@+id/buttonDaily"
                 android:layout_width="204dp"
                 android:layout_height="wrap_content"
-                android:text="Daily"
-                android:id="@+id/buttonDaily"
                 android:layout_gravity="center_horizontal"
+                android:layout_margin="5dp"
                 android:layout_weight="0.03"
                 android:onClick="GoDaily"
-                android:layout_margin="5dp" />
+                android:text="Daily" />
 
             <Button
+                android:id="@+id/buttonWeekly"
                 android:layout_width="204dp"
                 android:layout_height="wrap_content"
-                android:text="Weekly"
-                android:id="@+id/buttonWeekly"
                 android:layout_gravity="center_horizontal"
+                android:layout_margin="5dp"
                 android:layout_weight="0.03"
                 android:onClick="GoWeekly"
-                android:layout_margin="5dp" />
+                android:text="Weekly" />
 
             <Button
+                android:id="@+id/buttonAllTime"
                 android:layout_width="204dp"
                 android:layout_height="wrap_content"
-                android:text="All time"
-                android:id="@+id/buttonAllTime"
                 android:layout_gravity="center_horizontal"
+                android:layout_margin="5dp"
                 android:layout_weight="0.03"
                 android:onClick="GoAll"
-                android:layout_margin="5dp" />
+                android:text="@string/allTime" />
 
 
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+
+
+    </LinearLayout>
     </RelativeLayout>

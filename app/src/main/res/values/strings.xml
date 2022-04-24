@@ -14,5 +14,6 @@
     <string name="LogoutButtonText">Logout</string>
     <string name="HighscoreButtonText">Highscores</string>
     <string name="title_activity_highscores">Highscores</string>
+    <string name="allTime">All time</string>
 
 </resources>
