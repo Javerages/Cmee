@@ -20,7 +20,7 @@ import androidx.core.app.NavUtils;
 
 import java.util.List;
 
-import be.javerage.cmee.cmee.cmee.R;
+import be.javerage.cmee.R;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -225,7 +225,7 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
             preference.setSummary(stringValue);
         }
 
-        String pref = preference.getKey().toString();
+        String pref = preference.getKey();
         if (pref.equals("radius")) {
 
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(preference.getContext());
@@ -297,7 +297,7 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
                 preference.setSummary(stringValue);
             }
 
-            String pref = preference.getKey().toString();
+            String pref = preference.getKey();
             if (pref.equals("radius")) {
 
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(preference.getContext());

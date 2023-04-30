@@ -27,7 +27,7 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
-import be.javerage.cmee.cmee.cmee.R;
+import be.javerage.cmee.R;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;

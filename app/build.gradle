@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 android {
     signingConfigs {
+        release {
+        }
     }
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
         minSdkVersion 30
-        compileSdkVersion 30
         versionCode 16
         versionName "Privacy update"
         //multiDexEnabled true
@@ -19,24 +20,25 @@ android {
             debuggable releaseDebuggable
         }
     }
-    compileSdkVersion 31
-    buildToolsVersion '30.0.0'
+    compileSdkVersion 33
+    buildToolsVersion '31.0.0'
+    namespace 'be.javerage.cmee'
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':BaseGameUtils')
-    implementation 'com.google.android.gms:play-services-games:22.0.1'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.gms:play-services-games:23.1.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.android.support:support-v4'
-    implementation 'com.google.android.gms:play-services-base:18.0.1'
-    implementation 'com.google.android.gms:play-services-maps:18.0.2'
-    implementation 'com.google.android.gms:play-services-location:19.0.1'
-    implementation 'com.google.android.gms:play-services-ads:20.6.0'
-    implementation 'com.google.android.gms:play-services-auth:20.1.0'
+    implementation 'com.google.android.gms:play-services-base:18.2.0'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.gms:play-services-ads:22.0.0'
+    implementation 'com.google.android.gms:play-services-auth:20.5.0'
     implementation 'com.google.android.gms:play-services-plus:17.0.0'
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
-    implementation 'com.google.firebase:firebase-auth:21.0.3'
+    implementation 'com.google.firebase:firebase-auth:21.3.0'
     //implementation 'com.android.support:multidex:1.0.3'
 
 }

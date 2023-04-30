@@ -41,15 +41,37 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.plus.Plus;
+
 import com.google.example.games.basegameutils.BaseGameUtils;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.games.AnnotatedData;
+import com.google.android.gms.games.Games;
+import com.google.android.gms.games.GamesClientStatusCodes;
+import com.google.android.gms.games.SnapshotsClient;
+import com.google.android.gms.games.snapshot.Snapshot;
+import com.google.android.gms.games.snapshot.SnapshotMetadata;
+import com.google.android.gms.games.snapshot.SnapshotMetadataBuffer;
+import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
 
-import be.javerage.cmee.cmee.cmee.BuildConfig;
-import be.javerage.cmee.cmee.cmee.R;
+import be.javerage.cmee.BuildConfig;
+import be.javerage.cmee.R;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -79,7 +101,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     // A fast frequency ceiling in milliseconds
     private static final long FASTEST_INTERVAL =
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
-    private static int RC_SIGN_IN = 9001; //for google games ui
+    private static final int RC_SIGN_IN = 9001; //for google games ui
 
     boolean playing = false;
     boolean deletedpoint = false; //check if a point was deleted
@@ -87,16 +109,16 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
 
     PostScoreTask Postscore = null;
 
-    private Boolean NewGame = true;
+    private final Boolean NewGame = true;
     private int nrOfPoints = 5;
-    private int nrOfPlayers = 10;
+    private final int nrOfPlayers = 10;
     private int radius = 10;
     private double Pointsize = 10;
 
     //maps:
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private Vector<Player> Players = new Vector<Player>();
-    private Vector<Capturepoint> Capturepoints = new Vector<Capturepoint>();
+    private final Vector<Player> Players = new Vector<Player>();
+    private final Vector<Capturepoint> Capturepoints = new Vector<Capturepoint>();
     private LocationRequest locReq;
     private GoogleApiClient mGoogleApiClient;
 
@@ -198,11 +220,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
             for (int j = 0; j < Capturepoints.size(); j++) {
                 pointList.add(new LatLng(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX()));
 
-                if (Capturepoints.elementAt(j).Captured()) {
-                    capList[j] = true;
-                } else {
-                    capList[j] = false;
-                }
+                capList[j] = Capturepoints.elementAt(j).Captured();
             }
 
             outState.putParcelableArrayList("points", pointList);
@@ -305,11 +323,8 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
 
     public static boolean isMockSettingsON(Context context) {
         // returns true if mock location enabled, false if not enabled.
-        if (Settings.Secure.getString(context.getContentResolver(),
-                Settings.Secure.ALLOW_MOCK_LOCATION).equals("0"))
-            return false;
-        else
-            return true;
+        return !Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ALLOW_MOCK_LOCATION).equals("0");
     }
 
     /**
@@ -381,17 +396,14 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
         if (mSignInClicked || mAutoStartSignInflow) {
             mAutoStartSignInflow = false;
             mSignInClicked = false;
-            mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure using BaseGameUtils.
             // The R.string.signin_other_error value should reference a generic
             // error string in your strings.xml file, such as "There was
             // an issue with sign-in, please try again later."
-            if (!BaseGameUtils.resolveConnectionFailure(this,
+            mResolvingConnectionFailure = BaseGameUtils.resolveConnectionFailure(this,
                     mGoogleApiClient, connectionResult,
-                    RC_SIGN_IN, "Error")) {
-                mResolvingConnectionFailure = false;
-            }
+                    RC_SIGN_IN, "Error");
         }
         //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
     }
@@ -771,7 +783,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     private class PostScoreTask extends AsyncTask<String, Void, Boolean> {
 
         private Exception exception;
-        private String reply = "Highscores not uploaded";
+        private final String reply = "Highscores not uploaded";
 
         protected Boolean doInBackground(String... type) {
             try {
