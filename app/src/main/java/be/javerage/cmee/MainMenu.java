@@ -57,7 +57,6 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         setContentView(R.layout.activity_main_menu);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
                 .addOnConnectionFailedListener(this)
                 .build();

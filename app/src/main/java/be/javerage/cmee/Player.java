@@ -8,9 +8,9 @@ import android.location.Location;
 public class Player extends Point {
     private boolean me = false;
     private Location loc_;
-    private String name = "";
+    private final String name = "";
 
-    private Teams team;
+    private final Teams team;
 
     public Player(Teams team, Location loc, boolean me)
     {
@@ -23,7 +23,7 @@ public class Player extends Point {
         Circles ,
         Squares ,
         None
-    };
+    }
     //*********************//
     // Properties://
     //*********************//

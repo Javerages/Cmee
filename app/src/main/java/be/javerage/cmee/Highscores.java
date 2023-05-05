@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -22,7 +23,7 @@ import com.google.example.games.basegameutils.BaseGameUtils;
 import be.javerage.cmee.R;
 
 
-public class Highscores extends FragmentActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class Highscores extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingConnectionFailure = false;
     private boolean mAutoStartSignInflow = true;
@@ -36,7 +37,6 @@ public class Highscores extends FragmentActivity implements GoogleApiClient.OnCo
         setContentView(R.layout.activity_highscores);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
                 .build();
         mGoogleApiClient.connect();

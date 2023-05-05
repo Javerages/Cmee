@@ -64,7 +64,7 @@ public class GoogleApiHelper {
             } catch (ApiException apiException) {
                 String message = apiException.getMessage();
                 if (message == null || message.isEmpty()) {
-                    message = "Other error"//getString(R.string.signin_other_error);
+                    message = "Other error";//getString(R.string.signin_other_error);
                 }
 
                 onDisconnected();
@@ -190,7 +190,7 @@ public class GoogleApiHelper {
             status = apiException.getStatusCode();
         }
 
-        String message = "Exception in GoogleAPIHelper"//getString(R.string.status_exception_error, details, status, exception);
+        String message = "Exception in GoogleAPIHelper";//getString(R.string.status_exception_error, details, status, exception);
 
         new AlertDialog.Builder(mAppContext)
                 .setMessage(message)

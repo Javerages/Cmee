@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import be.javerage.cmee.R;
-
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -66,13 +64,16 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
     private View mLoginFormView;
 
     private GoogleApiClient mGoogleApiClient;
+
+    private GoogleApiHelper mGoogleApiHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
@@ -109,13 +110,17 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-      mGoogleApiClient  = new GoogleApiClient.Builder(this)
-              .addApi(LocationServices.API)
-              .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
-              .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-              .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .build();
         mGoogleApiClient.connect();
+
+        //new API calls
+        //mGoogleAPIHelper.startSignin();
     }
+
 
     private void populateAutoComplete() {
         getLoaderManager().initLoader(0, null, this);

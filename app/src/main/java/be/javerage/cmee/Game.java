@@ -202,7 +202,6 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
                 .addApi(LocationServices.API)
                 .build();

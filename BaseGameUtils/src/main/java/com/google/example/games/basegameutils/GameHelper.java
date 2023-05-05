@@ -16,8 +16,6 @@
 
 package com.google.example.games.basegameutils;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +24,9 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -36,8 +37,6 @@ import com.google.android.gms.games.Games.GamesOptions;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.Plus.PlusOptions;
-
-import java.util.ArrayList;
 
 public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -92,7 +91,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * because some games methods require an Activity (a Context won't do). We
      * are careful not to leak these references: we release them on onStop().
      */
-    Activity mActivity = null;
+    AppCompatActivity mActivity = null;
 
     // app context
     Context mAppContext = null;
@@ -182,11 +181,10 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * After constructing this object, call @link{setup} from the onCreate()
      * method of your Activity.
      *
-     * @param clientsToUse
-     *            the API clients to use (a combination of the CLIENT_* flags,
-     *            or CLIENT_ALL to mean all clients).
+     * @param clientsToUse the API clients to use (a combination of the CLIENT_* flags,
+     *                     or CLIENT_ALL to mean all clients).
      */
-    public GameHelper(Activity activity, int clientsToUse) {
+    public GameHelper(AppCompatActivity activity, int clientsToUse) {
         mActivity = activity;
         mAppContext = activity.getApplicationContext();
         mRequestedClients = clientsToUse;
@@ -268,8 +266,6 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         }
 
         if (0 != (mRequestedClients & CLIENT_PLUS)) {
-            builder.addApi(Plus.API);
-            builder.addScope(Plus.SCOPE_PLUS_LOGIN);
         }
 
         if (0 != (mRequestedClients & CLIENT_SNAPSHOT)) {
@@ -352,8 +348,10 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         mShowErrorDialogs = show;
     }
 
-    /** Call this method from your Activity's onStart(). */
-    public void onStart(Activity act) {
+    /**
+     * Call this method from your Activity's onStart().
+     */
+    public void onStart(AppCompatActivity act) {
         mActivity = act;
         mAppContext = act.getApplicationContext();
 
@@ -478,14 +476,14 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
 
         // We're coming back from an activity that was launched to resolve a
         // connection problem. For example, the sign-in UI.
-        if (responseCode == Activity.RESULT_OK) {
+        if (responseCode == AppCompatActivity.RESULT_OK) {
             // Ready to try to connect again.
             debugLog("onAR: Resolution was RESULT_OK, so connecting current client again.");
             connect();
         } else if (responseCode == GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED) {
             debugLog("onAR: Resolution was RECONNECT_REQUIRED, so reconnecting.");
             connect();
-        } else if (responseCode == Activity.RESULT_CANCELED) {
+        } else if (responseCode == AppCompatActivity.RESULT_CANCELED) {
             // User cancelled.
             debugLog("onAR: Got a cancellation result, so disconnecting.");
             mSignInCancelled = true;
@@ -807,8 +805,10 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         }
     }
 
-    /** Shows an error dialog that's appropriate for the failure reason. */
-    public static void showFailureDialog(Activity activity, int actResp,
+    /**
+     * Shows an error dialog that's appropriate for the failure reason.
+     */
+    public static void showFailureDialog(AppCompatActivity activity, int actResp,
                                          int errorCode) {
         if (activity == null) {
             Log.e("GameHelper", "*** No Activity. Can't show failure dialog!");
@@ -850,13 +850,13 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         errorDialog.show();
     }
 
-    static Dialog makeSimpleDialog(Activity activity, String text) {
+    static Dialog makeSimpleDialog(AppCompatActivity activity, String text) {
         return (new AlertDialog.Builder(activity)).setMessage(text)
                 .setNeutralButton(android.R.string.ok, null).create();
     }
 
     static Dialog
-    makeSimpleDialog(Activity activity, String title, String text) {
+    makeSimpleDialog(AppCompatActivity activity, String title, String text) {
         return (new AlertDialog.Builder(activity)).setMessage(text)
                 .setTitle(title).setNeutralButton(android.R.string.ok, null)
                 .create();

@@ -14,7 +14,7 @@ public class App extends Application {
 
     public SharedPreferences storage;
     private User mainuser;
-    private Boolean playing = false;
+    private final Boolean playing = false;
 
     @Override
     public void onCreate() {
@@ -45,5 +45,4 @@ public class App extends Application {
         return mainuser;
     }
 
-    ;
 }

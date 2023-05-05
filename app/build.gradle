@@ -1,4 +1,8 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+}
+
 android {
     signingConfigs {
         release {
@@ -7,20 +11,21 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        minSdkVersion 30
-        versionCode 16
-        versionName "Privacy update"
+        versionCode 17
+        versionName 'New maps API'
+        minSdk 23
+        targetSdk 33
         //multiDexEnabled true
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            resValue "string", "google_maps_api_key", "AIzaSyDN-RJ7FP990wiycg_gjF-qxUJD8ESvADg"
+            //resValue "string", "google_maps_api_key", "AIzaSyDN-RJ7FP990wiycg_gjF-qxUJD8ESvADg"
             debuggable releaseDebuggable
         }
     }
-    compileSdkVersion 33
+    compileSdk 33
     buildToolsVersion '31.0.0'
     namespace 'be.javerage.cmee'
 }
@@ -40,5 +45,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
     implementation 'com.google.firebase:firebase-auth:21.3.0'
     //implementation 'com.android.support:multidex:1.0.3'
-
 }
+
