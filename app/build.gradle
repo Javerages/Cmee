@@ -11,8 +11,8 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        versionCode 19
-        versionName 'Upgrade andoid version (35)'
+        versionCode 202506
+        versionName 'Yearly patch'
         minSdk 23
         targetSdk 35
         //multiDexEnabled true
@@ -26,7 +26,6 @@ android {
         }
     }
     compileSdk 34
-    buildToolsVersion '30.0.1'
     namespace 'be.javerage.cmee'
     buildFeatures {
         buildConfig true
