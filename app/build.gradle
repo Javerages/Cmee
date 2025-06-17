@@ -11,10 +11,10 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        versionCode 17
-        versionName 'New maps API'
+        versionCode 19
+        versionName 'Upgrade andoid version (35)'
         minSdk 23
-        targetSdk 33
+        targetSdk 35
         //multiDexEnabled true
     }
     buildTypes {
@@ -25,9 +25,12 @@ android {
             debuggable releaseDebuggable
         }
     }
-    compileSdk 33
-    buildToolsVersion '31.0.0'
+    compileSdk 34
+    buildToolsVersion '30.0.1'
     namespace 'be.javerage.cmee'
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {

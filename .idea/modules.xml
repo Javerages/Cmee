@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Cmee.iml" filepath="$PROJECT_DIR$/.idea/modules/Cmee.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.iml" filepath="$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.androidTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.main.iml" filepath="$PROJECT_DIR$/.idea/modules/BaseGameUtils/Cmee.BaseGameUtils.main.iml" />
