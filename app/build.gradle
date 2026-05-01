@@ -13,21 +13,21 @@ android {
         applicationId 'be.javerage.cmee'
         versionCode 202602
         versionName 'Yearly patch, refactored with Gemini'
-        minSdk 23
-        targetSdk 35
+        minSdk = 23
+        targetSdk = 35
         //multiDexEnabled true
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable releaseDebuggable
+            debuggable = rootProject.ext.releaseDebuggable
         }
     }
-    compileSdk 35
-    namespace 'be.javerage.cmee'
+    compileSdk = 35
+    namespace = 'be.javerage.cmee'
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
 }
 
@@ -40,8 +40,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.3.0'
     implementation 'com.google.android.gms:play-services-ads:25.2.0'
     implementation 'com.google.android.gms:play-services-auth:21.5.1'
-    implementation 'com.google.android.gms:play-services-plus:17.0.0'
-    implementation 'com.google.android.gms:play-services-gcm:17.0.0'
+    // implementation 'com.google.android.gms:play-services-plus:17.0.0'
+    // implementation 'com.google.android.gms:play-services-gcm:17.0.0'
     implementation 'com.google.firebase:firebase-auth:24.0.1'
     //implementation 'com.android.support:multidex:1.0.3'
     testImplementation 'junit:junit:4.13.2'
@@ -49,7 +49,7 @@ dependencies {
 
 androidComponents {
     beforeVariants(selector().all()) { variant ->
-        variant.enableUnitTest = true
+        variant.unitTestEnabled = true
     }
 }
 
