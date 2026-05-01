@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 android {
-    compileSdkVersion 33
+    compileSdkVersion 35
 
     // Set defaults so that BaseGameUtils can be used outside of BasicSamples
     if (!project.hasProperty('android_compile_version')) {
@@ -10,22 +10,15 @@ android {
         ext.android_version = '23'
     }
 
-    buildToolsVersion '30.0.3'
     defaultConfig {
         minSdkVersion 23
-        targetSdk 35
     }
     namespace 'com.google.example.games.basegameutils'
-}
-
-buildscript {
-    repositories {
-        google()
-        jcenter()
+    lint {
+        targetSdk 35
     }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.5.0'
+    testOptions {
+        targetSdk 35
     }
 }
 
@@ -44,10 +37,10 @@ dependencies {
     /*implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.android.support:support-v4'*/
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.gms:play-services-games:23.1.0'
+    implementation 'com.google.android.gms:play-services-games:24.0.0'
     implementation 'com.google.android.gms:play-services-plus:17.0.0'
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
 }
 
 

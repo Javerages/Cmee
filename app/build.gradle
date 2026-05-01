@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        versionCode 202506
+        versionCode 202601
         versionName 'Yearly patch'
         minSdk 23
         targetSdk 35
@@ -20,12 +20,11 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            //resValue "string", "google_maps_api_key", "AIzaSyDN-RJ7FP990wiycg_gjF-qxUJD8ESvADg"
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             debuggable releaseDebuggable
         }
     }
-    compileSdk 34
+    compileSdk 35
     namespace 'be.javerage.cmee'
     buildFeatures {
         buildConfig true
@@ -35,17 +34,16 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':BaseGameUtils')
-    implementation 'com.google.android.gms:play-services-games:23.1.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.android.support:support-v4'
-    implementation 'com.google.android.gms:play-services-base:18.2.0'
-    implementation 'com.google.android.gms:play-services-maps:18.1.0'
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
-    implementation 'com.google.android.gms:play-services-ads:22.0.0'
-    implementation 'com.google.android.gms:play-services-auth:20.5.0'
+    implementation 'com.google.android.gms:play-services-games:24.0.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.gms:play-services-base:18.10.0'
+    implementation 'com.google.android.gms:play-services-maps:20.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'com.google.android.gms:play-services-ads:25.2.0'
+    implementation 'com.google.android.gms:play-services-auth:21.5.1'
     implementation 'com.google.android.gms:play-services-plus:17.0.0'
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
-    implementation 'com.google.firebase:firebase-auth:21.3.0'
+    implementation 'com.google.firebase:firebase-auth:24.0.1'
     //implementation 'com.android.support:multidex:1.0.3'
 }
 
