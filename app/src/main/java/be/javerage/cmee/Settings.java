@@ -20,8 +20,6 @@ import androidx.core.app.NavUtils;
 
 import java.util.List;
 
-import be.javerage.cmee.R;
-
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
  * handset devices, settings are presented as a single list. On tablets,
@@ -77,8 +75,6 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setupActionBar();
     }
@@ -187,10 +183,6 @@ public class Settings extends PreferenceActivity implements Preference.OnPrefere
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN);}
-
     }
     /**
      * {@inheritDoc}

@@ -10,7 +10,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -25,14 +24,18 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.games.Games;
+import com.google.android.gms.games.AchievementsClient;
+import com.google.android.gms.games.LeaderboardsClient;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.PlayGamesSdk;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -40,36 +43,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.plus.Plus;
-
-import com.google.example.games.basegameutils.BaseGameUtils;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.Result;
-import com.google.android.gms.games.AnnotatedData;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.GamesClientStatusCodes;
-import com.google.android.gms.games.SnapshotsClient;
-import com.google.android.gms.games.snapshot.Snapshot;
-import com.google.android.gms.games.snapshot.SnapshotMetadata;
-import com.google.android.gms.games.snapshot.SnapshotMetadataBuffer;
-import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
 
-import be.javerage.cmee.BuildConfig;
 import be.javerage.cmee.R;
 
 /*import org.apache.http.HttpResponse;
@@ -83,8 +62,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;*/
 
-public class Game extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
+public class Game extends AppCompatActivity implements 
         GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener, GoogleMap.OnMapClickListener, OnMapReadyCallback {
 
@@ -100,46 +78,44 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     // A fast frequency ceiling in milliseconds
     private static final long FASTEST_INTERVAL =
             MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
-    private static final int RC_SIGN_IN = 9001; //for google games ui
 
     boolean playing = false;
     boolean deletedpoint = false; //check if a point was deleted
     boolean capthis = false; // var for removing a point
 
-    PostScoreTask Postscore = null;
-
-    private final Boolean NewGame = true;
     private int nrOfPoints = 5;
-    private final int nrOfPlayers = 10;
+    private int nrOfPlayers = 1;
     private int radius = 10;
     private double Pointsize = 10;
 
     //maps:
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private final Vector<Player> Players = new Vector<Player>();
-    private final Vector<Capturepoint> Capturepoints = new Vector<Capturepoint>();
+    private final Vector<Player> Players = new Vector<>();
+    private final Vector<Capturepoint> Capturepoints = new Vector<>();
     private LocationRequest locReq;
-    private GoogleApiClient mGoogleApiClient;
-
-    //Google games ui:
-    private boolean mResolvingConnectionFailure = false;
-    private boolean mAutoStartSignInflow = true;
-    private boolean mSignInClicked = false;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private AchievementsClient mAchievementsClient;
+    private LeaderboardsClient mLeaderboardsClient;
 
     //Gestures:
-    private GestureDetectorCompat mDetector;
+    private GestureDetector mDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        PlayGamesSdk.initialize(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mDetector = new GestureDetectorCompat(this, this);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        mDetector = new GestureDetector(this, this);
         // Set the gesture detector as the double tap
         // listener.
         mDetector.setOnDoubleTapListener(this);
+
+        mAchievementsClient = PlayGames.getAchievementsClient(this);
+        mLeaderboardsClient = PlayGames.getLeaderboardsClient(this);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         SharedPreferences preferences = ((App) getApplicationContext()).storage;
         radius = Integer.parseInt(preferences.getString("radius", "10"));
@@ -169,14 +145,9 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
         // locClient.connect();
 
 
-        locReq = LocationRequest.create();
-        // Use high accuracy
-        locReq.setPriority(
-                LocationRequest.PRIORITY_HIGH_ACCURACY);
-        // Set the update interval to 5 seconds
-        locReq.setInterval(UPDATE_INTERVAL);
-        // Set the fastest update interval to 1 second
-        locReq.setFastestInterval(FASTEST_INTERVAL);
+        locReq = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, UPDATE_INTERVAL)
+                .setMinUpdateIntervalMillis(FASTEST_INTERVAL)
+                .build();
 
         // Restoring the markers on configuration changes
         if (savedInstanceState != null) {
@@ -184,36 +155,28 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                 if (savedInstanceState.containsKey("Captures")) {
                     ArrayList<LatLng> pointList = savedInstanceState.getParcelableArrayList("points");
                     boolean[] capList = savedInstanceState.getBooleanArray("Captures");
-                    if (pointList != null) {
+                    if (pointList != null && capList != null) {
                         nrOfPoints = pointList.size();
-                        for (int i = 0; i < pointList.size(); i++) {
-                            LatLng tmp = pointList.get(i);
-                            Capturepoints.add(new Capturepoint(i, tmp.longitude, tmp.latitude));
-                            if (capList[i]) {
-                                Capturepoints.elementAt(i).Capture();
+                        for (int index = 0; index < pointList.size(); index++) {
+                            LatLng tmp = pointList.get(index);
+                            Capturepoints.add(new Capturepoint(index, tmp.longitude, tmp.latitude));
+                            if (index < capList.length && capList[index]) {
+                                Capturepoints.elementAt(index).Capture();
                             }
                         }
                     }
                 }
             }
         }
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                .addApi(LocationServices.API)
-                .build();
-
     }
 
     // A callback method, which is invoked on configuration is changed
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@androidx.annotation.NonNull Bundle outState) {
         // Adding the pointList arraylist to Bundle
 
         if (playing) {
-            ArrayList<LatLng> pointList = new ArrayList<LatLng>();
+            ArrayList<LatLng> pointList = new ArrayList<>();
             boolean[] capList = new boolean[Capturepoints.size()];
             for (int j = 0; j < Capturepoints.size(); j++) {
                 pointList.add(new LatLng(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX()));
@@ -237,11 +200,13 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     @Override
     protected void onPause() {
         App globalVariable = (App) getApplicationContext();
-        globalVariable.storage.edit().putInt("Score", globalVariable.MainUser().GetScore()).commit();
-        globalVariable.storage.edit().putInt("ScoreDay", globalVariable.MainUser().GetScoreDay()).commit();
-        globalVariable.storage.edit().putInt("ScoreWeek", globalVariable.MainUser().GetScoreWeek()).commit();
-        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        globalVariable.storage.edit().putString("lastPlayDate", date).commit();
+        globalVariable.storage.edit()
+                .putInt("Score", globalVariable.MainUser().GetScore())
+                .putInt("ScoreDay", globalVariable.MainUser().GetScoreDay())
+                .putInt("ScoreWeek", globalVariable.MainUser().GetScoreWeek())
+                .apply();
+        String date = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new Date());
+        globalVariable.storage.edit().putString("lastPlayDate", date).apply();
 
         super.onPause();
     }
@@ -255,27 +220,33 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
         setUpMapIfNeeded();
+        startLocationUpdates();
     }
+
+    private void startLocationUpdates() {
+        try {
+            mFusedLocationClient.requestLocationUpdates(locReq, mLocationCallback, null);
+        } catch (SecurityException ex) {
+            //TODO::handle securityexception
+        }
+    }
+
+    private final LocationCallback mLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            if (locationResult == null) {
+                return;
+            }
+            for (Location location : locationResult.getLocations()) {
+                onLocationChanged(location);
+            }
+        }
+    };
 
     @Override
     protected void onStop() {
-        // If the client is connected
-        if (mGoogleApiClient.isConnected()) {
-            /*
-             * Remove location updates for a listener.
-             * The current Activity is the listener, so
-             * the argument is "this".
-             */
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
-        }
-        /*
-         * After disconnect() is called, the client is
-         * considered "dead".
-         */
-
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         super.onStop();
     }
 
@@ -319,11 +290,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     }
 
 
-    public static boolean isMockSettingsON(Context context) {
-        // returns true if mock location enabled, false if not enabled.
-        return !Settings.Secure.getString(context.getContentResolver(),
-                Settings.Secure.ALLOW_MOCK_LOCATION).equals("0");
-    }
+
 
     /**
      * <p/>
@@ -341,172 +308,95 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                 Players.add(new Player(Player.Teams.None, null, true));//setup me
             }
 
-            if (mGoogleApiClient.isConnected()) {
-                RefreshMap();
-            }
-        }
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-
-        if (mGoogleApiClient.isConnected()) {
-            try {
-                /*CHECK LOCATION*/
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient, locReq, this);
-
-            }catch(SecurityException ex){
-                //TODO::handle securityexception
-            }
-            // Display the connection status
-            //Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-            // If already requested, start periodic updates #error#
-
-            ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetwork = connManager.getActiveNetworkInfo();
-            if (activeNetwork == null || !activeNetwork.isConnected()) {
-                    Toast.makeText(this, "Enable internet connection for map", Toast.LENGTH_SHORT).show();
-            }
-
-            if (radius > 10000) {
-                Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_going_worldwide));
-            }
-
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-        if (mResolvingConnectionFailure) {
-            // already resolving
-            return;
-        }
-
-        // if the sign-in button was clicked or if auto sign-in is enabled,
-        // launch the sign-in flow
-        if (mSignInClicked || mAutoStartSignInflow) {
-            mAutoStartSignInflow = false;
-            mSignInClicked = false;
-
-            // Attempt to resolve the connection failure using BaseGameUtils.
-            // The R.string.signin_other_error value should reference a generic
-            // error string in your strings.xml file, such as "There was
-            // an issue with sign-in, please try again later."
-            mResolvingConnectionFailure = BaseGameUtils.resolveConnectionFailure(this,
-                    mGoogleApiClient, connectionResult,
-                    RC_SIGN_IN, "Error");
-        }
-        //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent intent) {
-        super.onActivityResult(requestCode,resultCode,intent);
-        if (requestCode == RC_SIGN_IN) {
-            mSignInClicked = false;
-            mResolvingConnectionFailure = false;
-            if (resultCode == RESULT_OK) {
-                mGoogleApiClient.connect();
-            } else {
-                // Bring up an error dialog to alert the user that sign-in
-                // failed. The R.string.signin_failure should reference an error
-                // string in your strings.xml file that tells the user they
-                // could not be signed in, such as "Unable to sign in."
-                BaseGameUtils.showActivityResultError(this,
-                        requestCode, resultCode, R.string.signin_failure);
-            }
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        if (mGoogleApiClient.isConnected()) {//todo:: make it so that play api is not required
-            Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_i_started_it), 1);
-            for(Player player:Players) {
-                if (player.GetIsMe()) {
-                    player.SetLocation(location);
-                    if (!playing) {
-                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                                CameraPosition.fromLatLngZoom(new LatLng(player.GetY(),
-                                                player.GetX()),
-                                        (float) (17f / Math.pow(radius / 10, 0.15))
-                                )));
-                    }
-                }
-            }
-
-            if (Capturepoints.size() < 1 && !playing) {
-                for (int i = 0; i <= nrOfPlayers; i++) {
-                    // initialise players *to be added when multiplayer*
-                }
-
-                //add random points to capture
-                Capturepoints.clear();
-                for (int i = 1; i <= nrOfPoints; i++) {// initialise points
-
-                    double tmpX, tmpY;
-                    // for extra randomness
-                    //rnd is used for x and whether y is subtracted or added
-                    //rnd2 is used for y and whether x is subtracted or added
-                    //This may cause some predictable patterns but oh well
-                    // X = longitude, Y = latitude
-
-                    //calculate X (longitude) long->180
-
-                    if (Math.random() < 0.5f) {
-                        tmpX = Players.elementAt(0).GetX() - ((Math.random() / 10000.0) * radius);
-                    } else {
-                        tmpX = Players.elementAt(0).GetX() + ((Math.random() / 10000.0) * radius);
-                    }
-
-
-                    //check on international dateline
-                    while (tmpX > 180 | tmpX < -180) {
-                        if (tmpX > 180) {
-                            tmpX = -180 + (tmpX - 180);
-                        }
-                        if (tmpX < -180) {
-                            tmpX = 180 - (tmpX + 180);
-                        }
-                    }
-
-                    //calculate Y (latitude)
-                    if (Math.random() < 0.5f) {
-                        tmpY = Players.elementAt(0).GetY() + ((Math.random() / 10000.0) * radius);
-                    } else {
-                        tmpY = Players.elementAt(0).GetY() - ((Math.random() / 10000.0) * radius);
-                    }
-
-                    //check on international dateline
-                    while (tmpY > 90 | tmpY < -90) {
-                        if (tmpY < -90) {
-                            tmpY = 90 - (tmpY + 90);
-                        }
-                        if (tmpY > 90) {
-                            tmpY = -90 + (tmpY - 90);
-                        }
-                    }
-
-                    Capturepoint dummy = new Capturepoint(i, tmpX, tmpY);
-                    // set point
-                    Capturepoints.add(dummy);
-
-                }//next point
-            }
-
-            double acc = location.getAccuracy();
-            CheckHits(Pointsize, acc);
-
             RefreshMap();
-            playing = true;
+        }
+    }
+
+
+    public void onLocationChanged(Location location) {
+        mAchievementsClient.increment(this.getString(R.string.achievement_i_started_it), 1);
+        for(Player player:Players) {
+            if (player.GetIsMe()) {
+                player.SetLocation(location);
+                if (!playing) {
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                            CameraPosition.fromLatLngZoom(new LatLng(player.GetY(),
+                                            player.GetX()),
+                                    (float) (17f / Math.pow(radius / 10.0, 0.15))
+                            )));
+                }
+            }
+        }
+
+        if (Capturepoints.size() < 1 && !playing) {
+            for (int i = 0; i <= nrOfPlayers; i++) {
+                // initialise players *to be added when multiplayer*
+            }
+        }
+
+        if (Capturepoints.isEmpty() && !playing) {
+            //add random points to capture
+            Capturepoints.clear();
+            for (int i = 1; i <= nrOfPoints; i++) {// initialise points
+
+                double tmpX, tmpY;
+                // for extra randomness
+                //rnd is used for x and whether y is subtracted or added
+                //rnd2 is used for y and whether x is subtracted or added
+                //This may cause some predictable patterns but oh well
+                // X = longitude, Y = latitude
+
+                //calculate X (longitude) long->180
+
+                if (Math.random() < 0.5f) {
+                    tmpX = Players.elementAt(0).GetX() - ((Math.random() / 10000.0) * radius);
+                } else {
+                    tmpX = Players.elementAt(0).GetX() + ((Math.random() / 10000.0) * radius);
+                }
+
+
+                //check on international dateline
+                while (tmpX > 180 || tmpX < -180) {
+                    if (tmpX > 180) {
+                        tmpX = -180 + (tmpX - 180);
+                    }
+                    if (tmpX < -180) {
+                        tmpX = 180 - (tmpX + 180);
+                    }
+                }
+
+                //calculate Y (latitude)
+                if (Math.random() < 0.5f) {
+                    tmpY = Players.elementAt(0).GetY() + ((Math.random() / 10000.0) * radius);
+                } else {
+                    tmpY = Players.elementAt(0).GetY() - ((Math.random() / 10000.0) * radius);
+                }
+
+                //check on international dateline
+                while (tmpY > 90 || tmpY < -90) {
+                    if (tmpY < -90) {
+                        tmpY = 90 - (tmpY + 90);
+                    }
+                    if (tmpY > 90) {
+                        tmpY = -90 + (tmpY - 90);
+                    }
+                }
+
+                Capturepoint dummy = new Capturepoint(i, tmpX, tmpY);
+                // set point
+                Capturepoints.add(dummy);
+
+            }//next point
+        }
+
+        double acc = location.getAccuracy();
+        CheckHits(Pointsize, acc);
+
+        RefreshMap();
+        playing = true;
+
+        if (radius > 10000) {
+            mAchievementsClient.unlock(this.getString(R.string.achievement_going_worldwide));
         }
     }
 
@@ -518,24 +408,26 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
             for (int i = 0; i < Players.size(); i++) {
                 if (Players.elementAt(i).GetLocation() != null) {
 
-                    Drawable d = getResources().getDrawable(R.drawable.ic_launcher);
-                    BitmapDrawable bd = (BitmapDrawable) d.getCurrent();
-                    Bitmap b = bd.getBitmap();
-                    int renderWidth = 100 -2 * (int) mMap.getCameraPosition().zoom;
-                    int renderHeight = 100 - 2 * (int) mMap.getCameraPosition().zoom;
+                    Drawable d = androidx.core.content.res.ResourcesCompat.getDrawable(getResources(), R.drawable.ic_launcher, null);
+                    BitmapDrawable bd = (BitmapDrawable) d;
+                    if (bd != null) {
+                        Bitmap b = bd.getBitmap();
+                        int renderWidth = 100 - 2 * (int) mMap.getCameraPosition().zoom;
+                        int renderHeight = 100 - 2 * (int) mMap.getCameraPosition().zoom;
 
-                    if (renderWidth <=0 || renderHeight <=0){
-                        renderWidth = 100;
-                        renderHeight = 100;
+                        if (renderWidth <= 0 || renderHeight <= 0) {
+                            renderWidth = 100;
+                            renderHeight = 100;
+                        }
+
+                        Bitmap bHalfsize = Bitmap.createScaledBitmap(b, renderWidth, renderHeight, false);
+
+                        mMap.addMarker(new MarkerOptions()
+                                .icon(BitmapDescriptorFactory.fromBitmap(bHalfsize))
+                                .anchor(center, center)
+                                .position(new LatLng(Players.elementAt(i).GetY(), Players.elementAt(i).GetX())));
+                        // Toast.makeText(this, "P Location gotten :" + Players.elementAt(i).GetX() + " " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
                     }
-
-                    Bitmap bHalfsize = Bitmap.createScaledBitmap(b,renderWidth , renderHeight, false);
-
-                    mMap.addMarker(new MarkerOptions()
-                            .icon(BitmapDescriptorFactory.fromBitmap(bHalfsize))
-                            .anchor(center, center)
-                            .position(new LatLng(Players.elementAt(i).GetY(), Players.elementAt(i).GetX())));
-                    // Toast.makeText(this, "P Location gotten :" + Players.elementAt(i).GetX() + " " + Players.elementAt(i).GetY(), Toast.LENGTH_LONG).show();
 
                 }
             }
@@ -581,8 +473,9 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                                 Vibrator v = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
                                 // Vibrate for 500 milliseconds
                                 v.vibrate(500);
-                                if(!isMockSettingsON(getApplicationContext()) || BuildConfig.DEBUG) { //if cheats -> don't count score (except when debugging)
-                                    Games.Achievements.increment(mGoogleApiClient, this.getString(R.string.achievement_generation_i), 1);
+                                boolean isMock = player.GetLocation() != null && player.GetLocation().isFromMockProvider();
+                                if(!isMock || BuildConfig.DEBUG) { //if cheats -> don't count score (except when debugging)
+                                    mAchievementsClient.increment(this.getString(R.string.achievement_generation_i), 1);
                                     if (radius <= 100) {
                                         globalVariable.MainUser().AddScore(radius / 10);
                                     } else {
@@ -609,9 +502,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                     globalVariable.MainUser().AddScore((radius / 100) * nrOfPoints / 2);
                 }}
 
-                if (mGoogleApiClient.isConnected()) {
-                    Games.Achievements.unlock(mGoogleApiClient, this.getString(R.string.achievement_until_the_end));
-                }
+                mAchievementsClient.unlock(this.getString(R.string.achievement_until_the_end));
                 playing = false;
 
                /* if (globalVariable.MainUser().GetUserid() >= 0) {
@@ -624,13 +515,9 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                     Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
                 }*/
 
-                if(mGoogleApiClient.isConnected() ){
-                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
-                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
-                    Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
-                }else {
-                    Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
-                }
+                mLeaderboardsClient.submitScore(this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
+                mLeaderboardsClient.submitScore(this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
+                mLeaderboardsClient.submitScore(this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
 
                 finish();
             }
@@ -650,24 +537,18 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
                 Location.distanceBetween(Capturepoints.elementAt(j).GetY(), Capturepoints.elementAt(j).GetX(), Tappos.latitude, Tappos.longitude, dist);
 
                 if (dist[0] < Pointsize) {
-                    AlertDialog OK = new AlertDialog.Builder(this)
+                    new AlertDialog.Builder(this)
                             .setTitle("Delete point")
-                            .setMessage("Are you sure you want to delete point " + Capturepoints.elementAt(j).GetIndex()+ "? You will lose any bonus points for finishing")
-                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    capthis = true;
-                                    deletedpoint = true;
-                                }
+                            .setMessage("Are you sure you want to delete point " + Capturepoints.elementAt(j).GetIndex() + "? You will lose any bonus points for finishing")
+                            .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                                capthis = true;
+                                deletedpoint = true;
                             })
-                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // do nothing
-                                }
-                            })
+                            .setNegativeButton(android.R.string.no, null)
                             .setIcon(android.R.drawable.ic_delete)
                             .show();
 
-                    if (capthis){
+                    if (capthis) {
                         capthis = false;
                         Capturepoints.elementAt(j).Skip();
                     }
@@ -710,7 +591,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                     CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetY(),
                                     Players.elementAt(0).GetX()),
-                            (float) (17f / Math.pow(radius / 10, 0.15))
+                            (float) (17f / Math.pow(radius / 10.0, 0.15))
                     )));
         }
         RefreshMap();
@@ -721,9 +602,9 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     public void onLongPress(MotionEvent e) {
         if (Players.elementAt(0).GetLocation() != null) {
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetX(),
-                                    Players.elementAt(0).GetY()),
-                            (float) (17f / Math.pow(radius / 10, 0.15))
+                    CameraPosition.fromLatLngZoom(new LatLng(Players.elementAt(0).GetY(),
+                                    Players.elementAt(0).GetX()),
+                            (float) (17f / Math.pow(radius / 10.0, 0.15))
                     )));
         }
     }
@@ -769,11 +650,6 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN);
-        }
-
     }
 
     //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
@@ -797,9 +673,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
 
             SendToast(reply);
             if (!reply.equals("Highscores not uploaded")) {
-                if (mGoogleApiClient.isConnected()) {
-                    Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_until_the_end));
-                }
+                mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_until_the_end));
             }
 
             super.onPostExecute(aBoolean);
@@ -808,12 +682,7 @@ public class Game extends AppCompatActivity implements com.google.android.gms.lo
         private void SendToast(final String message) {
 
             View posted = findViewById(R.id.map);
-            posted.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
-                }
-            });
+            posted.post(() -> Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show());
         }
 
         /**

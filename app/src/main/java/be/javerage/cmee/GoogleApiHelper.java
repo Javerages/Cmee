@@ -1,7 +1,5 @@
 package be.javerage.cmee;
 
-import static android.provider.Settings.System.getString;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,13 +13,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.games.GamesClientStatusCodes;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.games.GamesSignInClient;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.PlayGamesSdk;
 import com.google.android.gms.tasks.Task;
 
 import java.util.concurrent.Executor;
@@ -38,8 +34,7 @@ public class GoogleApiHelper {
     public static final int RC_LOAD_SNAPSHOT = 9005;
 
 
-    private GoogleSignInClient mGoogleSignInClient;
-    private GoogleSignInAccount mSignedInAccount = null;
+    private GamesSignInClient mGamesSignInClient;
     private final AppCompatActivity mActivity;
     private Context mAppContext = null;
     Handler mHandler;
@@ -49,49 +44,24 @@ public class GoogleApiHelper {
         mActivity = activity;
         mAppContext = activity.getApplicationContext();
         mHandler = new Handler();
+        PlayGamesSdk.initialize(mAppContext);
+        mGamesSignInClient = PlayGames.getGamesSignInClient(mActivity);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-
-        if (requestCode == RC_SIGN_IN) {
-
-            Task<GoogleSignInAccount> task =
-                    GoogleSignIn.getSignedInAccountFromIntent(intent);
-
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                onConnected(account);
-            } catch (ApiException apiException) {
-                String message = apiException.getMessage();
-                if (message == null || message.isEmpty()) {
-                    message = "Other error";//getString(R.string.signin_other_error);
-                }
-
-                onDisconnected();
-
-                new AlertDialog.Builder(mAppContext)
-                        .setMessage(message)
-                        .setNeutralButton(android.R.string.ok, null)
-                        .show();
-            }
-        }
+        // In PGS v2, many flows no longer use onActivityResult for sign-in
     }
 
     public void startSignin() {
-        createApiClientBuilder();
-        startSignInIntent();
-    }
-
-    private void createApiClientBuilder() {
-        mGoogleSignInClient = GoogleSignIn.getClient(mActivity,
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-                        // Since we are using SavedGames, we need to add the SCOPE_APPFOLDER to access Google Drive.
-                        //.requestScopes(Drive.SCOPE_APPFOLDER)
-                        .build());
-    }
-
-    public void startSignInIntent() {
-        ActivityCompat.startActivityForResult(mActivity, mGoogleSignInClient.getSignInIntent(), RC_SIGN_IN, null);
+        mGamesSignInClient.signIn().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().isAuthenticated()) {
+                Log.d(TAG, "signIn(): success");
+                onConnected();
+            } else {
+                Log.d(TAG, "signIn(): failure");
+                onDisconnected();
+            }
+        });
     }
 
     /**
@@ -102,51 +72,28 @@ public class GoogleApiHelper {
     public void signInSilently() {
         Log.d(TAG, "signInSilently()");
 
-        mGoogleSignInClient.silentSignIn().addOnCompleteListener((Executor) this,
-                new OnCompleteListener<GoogleSignInAccount>() {
-                    @Override
-                    public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "signInSilently(): success");
-                            onConnected(task.getResult());
-                        } else {
-                            Log.d(TAG, "signInSilently(): failure", task.getException());
-                            onDisconnected();
-                        }
-                    }
-                });
+        mGamesSignInClient.isAuthenticated().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().isAuthenticated()) {
+                Log.d(TAG, "signInSilently(): success");
+                onConnected();
+            } else {
+                Log.d(TAG, "signInSilently(): failure");
+                onDisconnected();
+            }
+        });
     }
 
     public void signOut() {
-
-        mGoogleSignInClient.signOut().addOnCompleteListener((Executor) this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "signOut(): success");
-                        } else {
-                            handleException(task.getException(), "signOut() failed!");
-                        }
-
-                        onDisconnected();
-                    }
-                });
+        Log.d(TAG, "signOut(): Not supported in PGS v2. Users manage sign-out via Play Games app.");
+        onDisconnected();
     }
 
-    private void onConnected(GoogleSignInAccount googleSignInAccount) {
+    private void onConnected() {
         Log.d(TAG, "onConnected(): connected to Google APIs");
-
-        if (mSignedInAccount != googleSignInAccount) {
-
-            mSignedInAccount = googleSignInAccount;
-
-            onAccountChanged(googleSignInAccount);
-        }
+        onAccountChanged();
     }
 
-    private void onAccountChanged(GoogleSignInAccount googleSignInAccount) {
+    private void onAccountChanged() {
         showSignOutBar();
     }
 
@@ -172,7 +119,7 @@ public class GoogleApiHelper {
     }
 
     private boolean isSignedIn() {
-        return mGoogleSignInClient != null;
+        return mGamesSignInClient != null;
     }
 
     /**

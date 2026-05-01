@@ -11,8 +11,8 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        versionCode 202601
-        versionName 'Yearly patch'
+        versionCode 202602
+        versionName 'Yearly patch, refactored with Gemini'
         minSdk 23
         targetSdk 35
         //multiDexEnabled true
@@ -33,8 +33,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation project(':BaseGameUtils')
-    implementation 'com.google.android.gms:play-services-games:24.0.0'
+    implementation 'com.google.android.gms:play-services-games-v2:21.0.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.gms:play-services-base:18.10.0'
     implementation 'com.google.android.gms:play-services-maps:20.0.0'
@@ -45,5 +44,12 @@ dependencies {
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
     implementation 'com.google.firebase:firebase-auth:24.0.1'
     //implementation 'com.android.support:multidex:1.0.3'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        variant.enableUnitTest = true
+    }
 }
 

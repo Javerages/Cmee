@@ -22,10 +22,11 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.plus.Plus;
-import com.google.example.games.basegameutils.BaseGameUtils;
+import com.google.android.gms.games.AchievementsClient;
+import com.google.android.gms.games.GamesSignInClient;
+import com.google.android.gms.games.LeaderboardsClient;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.PlayGamesSdk;
 
 import be.javerage.cmee.R;
 
@@ -41,36 +42,52 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;*/
 
 
-public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
-    private static final int RC_SIGN_IN = 9001;
+public class MainMenu extends AppCompatActivity {
     PostScoreTask Postscore = null;
-    private GoogleApiClient mGoogleApiClient;
-    private boolean mResolvingConnectionFailure = false;
-    private boolean mAutoStartSignInflow = true;
-    private boolean mSignInClicked = false;
+
+    private AchievementsClient mAchievementsClient;
+    private LeaderboardsClient mLeaderboardsClient;
+    private GamesSignInClient mGamesSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        PlayGamesSdk.initialize(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                .addOnConnectionFailedListener(this)
-                .build();
+        mAchievementsClient = PlayGames.getAchievementsClient(this);
+        mLeaderboardsClient = PlayGames.getLeaderboardsClient(this);
+        mGamesSignInClient = PlayGames.getGamesSignInClient(this);
 
+        checkIfAutomaticallySignedIn();
+    }
 
+    private void checkIfAutomaticallySignedIn() {
+        mGamesSignInClient.isAuthenticated().addOnCompleteListener(task -> {
+            boolean isAuthenticated = (task.isSuccessful() && task.getResult().isAuthenticated());
+            if (isAuthenticated) {
+                updateUIForSignedInState(true);
+            } else {
+                updateUIForSignedInState(false);
+            }
+        });
+    }
+
+    private void updateUIForSignedInState(boolean signedIn) {
+        Button Loginbtn = findViewById(R.id.buttonLogin);
+        Button Logoutbtn = findViewById(R.id.buttonLogout);
+        if (signedIn) {
+            Loginbtn.setVisibility(View.GONE);
+            Logoutbtn.setVisibility(View.VISIBLE);
+        } else {
+            Loginbtn.setVisibility(View.VISIBLE);
+            Logoutbtn.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        }
     }
 
     @Override
@@ -117,64 +134,10 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         }
 
         if (id == R.id.action_Chieves) {
-            if (mGoogleApiClient.isConnected()) {
-                startActivityForResult(Games.Achievements.getAchievementsIntent(
-                        mGoogleApiClient), 1);
-            } else {
-                mSignInClicked = true;
-                mGoogleApiClient.connect();
-            }
+            mAchievementsClient.getAchievementsIntent()
+                    .addOnSuccessListener(intent -> startActivityForResult(intent, 1));
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-        if (mResolvingConnectionFailure) {
-            // already resolving
-            return;
-        }
-
-        // if the sign-in button was clicked or if auto sign-in is enabled,
-        // launch the sign-in flow
-        if (mSignInClicked || mAutoStartSignInflow) {
-            mAutoStartSignInflow = false;
-            mSignInClicked = false;
-
-            // Attempt to resolve the connection failure using BaseGameUtils.
-            // The R.string.signin_other_error value should reference a generic
-            // error string in your strings.xml file, such as "There was
-            // an issue with sign-in, please try again later."
-            mResolvingConnectionFailure = BaseGameUtils.resolveConnectionFailure(this,
-                    mGoogleApiClient, connectionResult,
-                    RC_SIGN_IN, "Error");
-        }
-        //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        if (requestCode == RC_SIGN_IN) {
-            mSignInClicked = false;
-            mResolvingConnectionFailure = false;
-            if (resultCode == RESULT_OK) {
-                mGoogleApiClient.connect();
-                Button Loginbtn = findViewById(R.id.buttonLogin);
-                Loginbtn.setVisibility(View.GONE);
-                Button Logoutbtn = findViewById(R.id.buttonLogout);
-                Logoutbtn.setVisibility(View.VISIBLE);
-            } else {
-                // Bring up an error dialog to alert the user that sign-in
-                // failed. The R.string.signin_failure should reference an error
-                // string in your strings.xml file that tells the user they
-                // could not be signed in, such as "Unable to sign in."
-                BaseGameUtils.showActivityResultError(this,
-                        requestCode, resultCode, R.string.signin_failure);
-            }
-        }
     }
 
     public void GoPlay(View view) {
@@ -205,13 +168,8 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
     }
 
     public void GoChieves(View view) {
-        if (mGoogleApiClient.isConnected()) {
-            startActivityForResult(Games.Achievements.getAchievementsIntent(
-                    mGoogleApiClient), 1);
-        } else {
-            mSignInClicked = true;
-            mGoogleApiClient.connect();
-        }
+        mAchievementsClient.getAchievementsIntent()
+                .addOnSuccessListener(intent -> startActivityForResult(intent, 1));
     }
 
     public void GoLogin(View view) {
@@ -228,63 +186,23 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
         //Error?
         }
 
-        if (mGoogleApiClient != null) {
-            if (!mGoogleApiClient.isConnected()) {
-                mSignInClicked = true;
-                mGoogleApiClient.connect();
+        mGamesSignInClient.signIn().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().isAuthenticated()) {
+                updateUIForSignedInState(true);
             } else {
-                mGoogleApiClient.disconnect();
-                findViewById(R.id.buttonLogin).setVisibility(View.VISIBLE);
-                findViewById(R.id.buttonLogout).setVisibility(View.GONE);
+                updateUIForSignedInState(false);
             }
-        }
+        });
     }
 
     public void GoHighscores(View view) {
         App globalVariable = (App) getApplicationContext();
-        if (mGoogleApiClient.isConnected()) {
-            Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
-            Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
-            Games.Leaderboards.submitScore(mGoogleApiClient, this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
-            Intent intent = new Intent(this, Highscores.class);
-            //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
-            startActivity(intent);
-        } else {
-            mSignInClicked = true;
-            mGoogleApiClient.connect();
-            Toast.makeText(getApplicationContext(), "Connecting", Toast.LENGTH_SHORT).show();
-        }
-
-      /*  App globalVariable = (App) getApplicationContext();
-        if (globalVariable.MainUser().GetUserid() >= 0) {
-            if (Postscore != null) {
-                if (Postscore.finished) {
-                    Postscore = null;
-                }
-            }
-            if (Postscore == null) {
-                Postscore = new PostScoreTask();
-                Postscore.execute("all");
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "Log in to upload highscore", Toast.LENGTH_SHORT).show();
-        }*
-
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://cmee.yzi.me/index.php/app/highscores")));
-        */
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        Button Loginbtn = findViewById(R.id.buttonLogin);
-        Loginbtn.setVisibility(View.GONE);
-        Button Logoutbtn = findViewById(R.id.buttonLogout);
-        Logoutbtn.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
+        mLeaderboardsClient.submitScore(this.getString(R.string.leaderboard_daily_highscores), globalVariable.MainUser().GetScoreDay());
+        mLeaderboardsClient.submitScore(this.getString(R.string.leaderboard_weekly_highscores), globalVariable.MainUser().GetScoreWeek());
+        mLeaderboardsClient.submitScore(this.getString(R.string.leaderboard_all_time_highscores), globalVariable.MainUser().GetScore());
+        Intent intent = new Intent(this, Highscores.class);
+        //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
+        startActivity(intent);
     }
 
     /**
@@ -341,11 +259,7 @@ public class MainMenu extends AppCompatActivity implements GoogleApiClient.OnCon
 
             SendToast(reply);
             if (reply.equals("Highscore saved")) {
-                if (mGoogleApiClient.isConnected()) {
-                    Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_beat_that));
-                } else {
-
-                }
+                mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_beat_that));
             }
             finished = true;
             super.onPostExecute(aBoolean);

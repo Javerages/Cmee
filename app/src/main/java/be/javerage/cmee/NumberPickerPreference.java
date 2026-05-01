@@ -9,8 +9,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.NumberPicker;
 
-import be.javerage.cmee.R;
-
 public class NumberPickerPreference extends DialogPreference {
 
     NumberPicker picker;

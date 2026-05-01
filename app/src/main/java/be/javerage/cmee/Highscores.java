@@ -10,36 +10,29 @@ import android.view.ViewGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.plus.Plus;
-import com.google.example.games.basegameutils.BaseGameUtils;
+import com.google.android.gms.games.AchievementsClient;
+import com.google.android.gms.games.LeaderboardsClient;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.PlayGamesSdk;
 
 import be.javerage.cmee.R;
 
 
-public class Highscores extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
-    private GoogleApiClient mGoogleApiClient;
-    private boolean mResolvingConnectionFailure = false;
-    private boolean mAutoStartSignInflow = true;
-    private boolean mSignInClicked = false;
-
-    private static final int RC_SIGN_IN = 9001;
+public class Highscores extends AppCompatActivity {
+    private AchievementsClient mAchievementsClient;
+    private LeaderboardsClient mLeaderboardsClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        PlayGamesSdk.initialize(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_highscores);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                .build();
-        mGoogleApiClient.connect();
+        mAchievementsClient = PlayGames.getAchievementsClient(this);
+        mLeaderboardsClient = PlayGames.getLeaderboardsClient(this);
     }
 
 
@@ -65,87 +58,26 @@ public class Highscores extends AppCompatActivity implements GoogleApiClient.OnC
         }
 
         if (id == R.id.action_Chieves) {
-            if (mGoogleApiClient.isConnected()) {
-                startActivityForResult(Games.Achievements.getAchievementsIntent(
-                        mGoogleApiClient), 1);
-            }else {mSignInClicked =true;
-                mGoogleApiClient.connect();}
+            mAchievementsClient.getAchievementsIntent()
+                    .addOnSuccessListener(intent -> startActivityForResult(intent, 1));
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        if (requestCode == RC_SIGN_IN) {
-            mSignInClicked = false;
-            mResolvingConnectionFailure = false;
-            if (resultCode == RESULT_OK) {
-                mGoogleApiClient.connect();
-            } else {
-                // Bring up an error dialog to alert the user that sign-in
-                // failed. The R.string.signin_failure should reference an error
-                // string in your strings.xml file that tells the user they
-                // could not be signed in, such as "Unable to sign in."
-                BaseGameUtils.showActivityResultError(this,
-                        requestCode, resultCode, R.string.signin_failure);
-            }
-        }
-    }
-
     public void GoDaily(View view) {
-        if (mGoogleApiClient.isConnected()) {
-            startActivityForResult(Games.Leaderboards.getLeaderboardIntent(mGoogleApiClient,
-                    this.getString(R.string.leaderboard_daily_highscores)), 1);
-        }else {
-            mSignInClicked = true;
-            mGoogleApiClient.connect();
-        }
+        mLeaderboardsClient.getLeaderboardIntent(this.getString(R.string.leaderboard_daily_highscores))
+                .addOnSuccessListener(intent -> startActivityForResult(intent, 1));
     }
+
     public void GoWeekly(View view) {
-        if (mGoogleApiClient.isConnected()) {
-            startActivityForResult(Games.Leaderboards.getLeaderboardIntent(mGoogleApiClient,
-                    this.getString(R.string.leaderboard_weekly_highscores)), 2);
-        }else {
-            mSignInClicked = true;
-            mGoogleApiClient.connect();
-        }
+        mLeaderboardsClient.getLeaderboardIntent(this.getString(R.string.leaderboard_weekly_highscores))
+                .addOnSuccessListener(intent -> startActivityForResult(intent, 2));
     }
+
     public void GoAll(View view) {
-        if (mGoogleApiClient.isConnected()) {
-            startActivityForResult(Games.Leaderboards.getLeaderboardIntent(mGoogleApiClient,
-                    this.getString(R.string.leaderboard_all_time_highscores)), 3);
-        }else {
-            mSignInClicked = true;
-            mGoogleApiClient.connect();
-        }
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-        if (mResolvingConnectionFailure) {
-            // already resolving
-            return;
-        }
-
-        // if the sign-in button was clicked or if auto sign-in is enabled,
-        // launch the sign-in flow
-        if (mSignInClicked || mAutoStartSignInflow) {
-            mAutoStartSignInflow = false;
-            mSignInClicked = false;
-
-            // Attempt to resolve the connection failure using BaseGameUtils.
-            // The R.string.signin_other_error value should reference a generic
-            // error string in your strings.xml file, such as "There was
-            // an issue with sign-in, please try again later."
-            mResolvingConnectionFailure = BaseGameUtils.resolveConnectionFailure(this,
-                    mGoogleApiClient, connectionResult,
-                    RC_SIGN_IN, "Error");
-        }
-        //Toast.makeText(this, "Connection lost", Toast.LENGTH_SHORT).show();
+        mLeaderboardsClient.getLeaderboardIntent(this.getString(R.string.leaderboard_all_time_highscores))
+                .addOnSuccessListener(intent -> startActivityForResult(intent, 3));
     }
 
     public static class AdFragment extends Fragment {

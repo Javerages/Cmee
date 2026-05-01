@@ -26,10 +26,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.plus.Plus;
+import com.google.android.gms.games.AchievementsClient;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.PlayGamesSdk;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,17 +62,16 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
     private View mProgressView;
     private View mLoginFormView;
 
-    private GoogleApiClient mGoogleApiClient;
-
-    private GoogleApiHelper mGoogleApiHelper;
+    private AchievementsClient mAchievementsClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        PlayGamesSdk.initialize(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mAchievementsClient = PlayGames.getAchievementsClient(this);
 
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
@@ -111,12 +109,6 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                .build();
-        mGoogleApiClient.connect();
-
         //new API calls
         //mGoogleAPIHelper.startSignin();
     }
@@ -129,10 +121,6 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN);}
-
     }
 
     /**
@@ -408,9 +396,7 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
         public boolean AskServer(String username, String pass) throws IOException {
 
                     //TODO: Check if user has score online
-                    if (mGoogleApiClient.isConnected()) {
-                        Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_a_new_explorer));
-                    }
+                    mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
 
             return true;
         }
@@ -452,9 +438,7 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
                 globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
                 globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
                 SendToast("Registered");
-                if (mGoogleApiClient.isConnected()) {
-                    Games.Achievements.unlock(mGoogleApiClient, getApplicationContext().getString(R.string.achievement_a_new_explorer));
-                }
+                mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
                 finish();
             } else {
 
