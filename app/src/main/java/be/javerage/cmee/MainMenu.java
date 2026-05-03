@@ -267,12 +267,7 @@ public class MainMenu extends AppCompatActivity {
         private void SendToast(final String message) {
 
             View posted = findViewById(R.id.buttonHighscores);
-            posted.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
-                }
-            });
+            posted.post(() -> Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show());
         }
 
         /**
