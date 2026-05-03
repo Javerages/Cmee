@@ -3,6 +3,12 @@ plugins {
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+}
+
 android {
     signingConfigs {
         release {
@@ -18,7 +24,11 @@ android {
         //multiDexEnabled true
     }
     buildTypes {
+        debug {
+            manifestPlaceholders = [mapsApiKey: localProperties.getProperty("MAPS_API_KEY_DEBUG") ?: ""]
+        }
         release {
+            manifestPlaceholders = [mapsApiKey: localProperties.getProperty("MAPS_API_KEY") ?: ""]
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             debuggable = rootProject.ext.releaseDebuggable
