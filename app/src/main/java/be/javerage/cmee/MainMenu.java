@@ -1,6 +1,7 @@
 package be.javerage.cmee;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -11,6 +12,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -25,16 +30,7 @@ import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayGames;
 
 
-/*import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;*/
+
 
 
 public class MainMenu extends AppCompatActivity {
@@ -42,6 +38,12 @@ public class MainMenu extends AppCompatActivity {
     private AchievementsClient mAchievementsClient;
     private LeaderboardsClient mLeaderboardsClient;
     private GamesSignInClient mGamesSignInClient;
+
+    private final ActivityResultLauncher<Intent> mAchievementsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        // Handle result if needed
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,13 +83,13 @@ public class MainMenu extends AppCompatActivity {
         mloginlbl.setText("");
         if (globalVariable.MainUser().GetUserid() >= 0) {
             mloginlbl.setVisibility(View.VISIBLE);
-            mloginlbl.setText("Logged in as " + globalVariable.MainUser().GetUsername());
+            mloginlbl.setText(getString(R.string.logged_in_as, globalVariable.MainUser().GetUsername()));
         }
 
         TextView mScoreView = findViewById(R.id.Score);
         if (globalVariable.MainUser().GetScore() >= 0) {
             mScoreView.setVisibility(View.VISIBLE);
-            mScoreView.setText("Score: " + globalVariable.MainUser().GetScore());
+            mScoreView.setText(getString(R.string.score_format, globalVariable.MainUser().GetScore()));
         }
 
     }
@@ -118,16 +120,20 @@ public class MainMenu extends AppCompatActivity {
 
         if (id == R.id.action_Chieves) {
             mAchievementsClient.getAchievementsIntent()
-                    .addOnSuccessListener(intent -> startActivityForResult(intent, 1));
+                    .addOnSuccessListener(mAchievementsLauncher::launch);
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void GoPlay(View view) {
         int googlePlayServicesIsAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext());
-            if (ConnectionResult.SUCCESS != googlePlayServicesIsAvailable) {
-                //TODO:: treat error
+        if (ConnectionResult.SUCCESS != googlePlayServicesIsAvailable) {
+            //TODO:: treat error
+            Dialog errorDialog = GoogleApiAvailability.getInstance().getErrorDialog(this, googlePlayServicesIsAvailable, 1);
+            if (errorDialog != null) {
+                errorDialog.show();
             }
+        }
 
         //request permissions if needed
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -152,26 +158,20 @@ public class MainMenu extends AppCompatActivity {
 
     public void GoChieves(View view) {
         mAchievementsClient.getAchievementsIntent()
-                .addOnSuccessListener(intent -> startActivityForResult(intent, 1));
+                .addOnSuccessListener(mAchievementsLauncher::launch);
     }
 
     public void GoLogin(View view) {
-      /*  Intent intent = new Intent(this, Login.class);
-        //intent.putExtra(EXTRA_MESSAGE, message); Send extra data
-        startActivity(intent);*/
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS)
                 != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     2);
-        } else {
-        //Error?
         }
 
-        mGamesSignInClient.signIn().addOnCompleteListener(task -> {
-            updateUIForSignedInState(task.isSuccessful() && task.getResult().isAuthenticated());
-        });
+        mGamesSignInClient.signIn().addOnCompleteListener(task ->
+                updateUIForSignedInState(task.isSuccessful() && task.getResult().isAuthenticated()));
     }
 
     public void GoHighscores(View view) {
@@ -195,8 +195,7 @@ public class MainMenu extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main_menu, container, false);
-            return rootView;
+            return inflater.inflate(R.layout.fragment_main_menu, container, false);
         }
     }
 
@@ -208,11 +207,13 @@ public class MainMenu extends AppCompatActivity {
         }
 
         @Override
-        public void onActivityCreated(Bundle bundle) {
-            super.onActivityCreated(bundle);
-            AdView mAdView = getView().findViewById(R.id.adView);
-            AdRequest adRequest = new AdRequest.Builder().build();
-            mAdView.loadAd(adRequest);
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            AdView mAdView = view.findViewById(R.id.adView);
+            if (mAdView != null) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+            }
         }
     }
 

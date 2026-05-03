@@ -2,10 +2,8 @@ package be.javerage.cmee;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
@@ -15,7 +13,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,15 +30,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/*import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;*/
+
 
 
 /**
@@ -69,9 +58,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
         GoogleApiHelper.initializePlayGames(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mAchievementsClient = PlayGames.getAchievementsClient(this);
 
@@ -136,7 +123,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
 
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (!TextUtils.isEmpty(password) && isPasswordInvalid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
@@ -147,7 +134,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
+        } else if (isEmailInvalid(email)) {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
@@ -165,7 +152,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
             mExecutorService.execute(() -> {
                 boolean success;
                 try {
-                    success = askServerLogin(email, password);
+                    success = askServerLogin();
                 } catch (IOException e) {
                     success = false;
                 }
@@ -207,7 +194,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
 
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (!TextUtils.isEmpty(password) && isPasswordInvalid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
@@ -218,7 +205,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
+        } else if (isEmailInvalid(email)) {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
@@ -236,7 +223,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
             mExecutorService.execute(() -> {
                 boolean success;
                 try {
-                    success = askServerRegister(email, password);
+                    success = askServerRegister();
                 } catch (IOException e) {
                     success = false;
                 }
@@ -263,7 +250,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
     /**
      * Used to log in on javerage.cmee.yzi.me - logic replaced by googleAPI call
      */
-    public boolean askServerLogin(String username, String pass) throws IOException {
+    public boolean askServerLogin() throws IOException {
         //TODO: Check if user has score online
         mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
         return true;
@@ -273,7 +260,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
      * OLD API call to site, site no longer exists so no longer used
      * Was poorly implemented anyway
      */
-    public boolean askServerRegister(String username, String pass) throws IOException {
+    public boolean askServerRegister() throws IOException {
         return false;
     }
 
@@ -283,48 +270,37 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
         mExecutorService.shutdown();
     }
 
-    private boolean isEmailValid(String email) {
-        return email.contains("@");
+    private boolean isEmailInvalid(String email) {
+        return !email.contains("@");
     }
 
-    private boolean isPasswordValid(String password) {
-        return password.length() > 5;
+    private boolean isPasswordInvalid(String password) {
+        return password.length() <= 5;
     }
 
     /**
      * Shows the progress UI and hides the login form.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     public void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     @NonNull
@@ -347,11 +323,11 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> cursorLoader, Cursor cursor) {
-        List<String> emails = new ArrayList<String>();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            emails.add(cursor.getString(ProfileQuery.ADDRESS));
-            cursor.moveToNext();
+        List<String> emails = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                emails.add(cursor.getString(ProfileQuery.ADDRESS));
+            } while (cursor.moveToNext());
         }
 
         addEmailsToAutoComplete(emails);
@@ -365,7 +341,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
     private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
         //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
         ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(this,
+                new ArrayAdapter<>(this,
                         android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
 
         mEmailView.setAdapter(adapter);
@@ -383,7 +359,6 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
         };
 
         int ADDRESS = 0;
-        int IS_PRIMARY = 1;
     }
 
 }

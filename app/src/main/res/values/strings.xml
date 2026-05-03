@@ -15,5 +15,7 @@
     <string name="HighscoreButtonText">Highscores</string>
     <string name="title_activity_highscores">Highscores</string>
     <string name="allTime">All time</string>
+    <string name="logged_in_as">Logged in as %1$s</string>
+    <string name="score_format">Score: %1$d</string>
 
 </resources>

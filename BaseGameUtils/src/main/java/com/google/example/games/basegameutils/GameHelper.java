@@ -51,7 +51,8 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
          * Called when sign-in fails. As a result, a "Sign-In" button can be
          * shown to the user; when that button is clicked, call
          *
-         * @link{GamesHelper#beginUserInitiatedSignIn . Note that not all calls
+         /**
+     * @see #beginUserInitiatedSignIn. Note that not all calls
          *                                            to this method mean an
          *                                            error; it may be a result
          *                                            of the fact that automatic
@@ -91,10 +92,10 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * because some games methods require an Activity (a Context won't do). We
      * are careful not to leak these references: we release them on onStop().
      */
-    AppCompatActivity mActivity = null;
+    AppCompatActivity mActivity;
 
     // app context
-    Context mAppContext = null;
+    Context mAppContext;
 
     // Request code we use when invoking other Activities to complete the
     // sign-in flow.
@@ -104,14 +105,14 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
     final static int RC_UNUSED = 9002;
 
     // the Google API client builder we will use to create GoogleApiClient
-    GoogleApiClient.Builder mGoogleApiClientBuilder = null;
+    GoogleApiClient.Builder mGoogleApiClientBuilder;
 
     // Api options to use when adding each API, null for none
     GamesOptions mGamesApiOptions = GamesOptions.builder().build();
-    PlusOptions mPlusApiOptions = null;
+    PlusOptions mPlusApiOptions;
 
     // Google API client object we manage.
-    GoogleApiClient mGoogleApiClient = null;
+    GoogleApiClient mGoogleApiClient;
 
     // Client request flags
     public final static int CLIENT_NONE = 0x00;
@@ -122,7 +123,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
             | CLIENT_SNAPSHOT;
 
     // What clients were requested? (bit flags)
-    int mRequestedClients = CLIENT_NONE;
+    int mRequestedClients;
 
     // Whether to automatically try to sign in on onStart(). We only set this
     // to true when the sign-in process fails or the user explicitly signs out.
@@ -369,12 +370,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         } else {
             debugLog("Not attempting to connect becase mConnectOnStart=false");
             debugLog("Instead, reporting a sign-in failure.");
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    notifyListener(false);
-                }
-            }, 1000);
+            mHandler.postDelayed(() -> notifyListener(false), 1000);
         }
     }
 
@@ -457,8 +453,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
     public void onActivityResult(int requestCode, int responseCode,
                                  Intent intent) {
         debugLog("onActivityResult: req="
-                + (requestCode == RC_RESOLVE ? "RC_RESOLVE" : String
-                .valueOf(requestCode)) + ", resp="
+                + (requestCode == RC_RESOLVE ? "RC_RESOLVE" : requestCode) + ", resp="
                 + GameHelperUtils.activityResponseCodeToString(responseCode));
         if (requestCode != RC_RESOLVE) {
             debugLog("onActivityResult: request code not meant for us. Ignoring.");
@@ -635,7 +630,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         SharedPreferences.Editor editor = mAppContext.getSharedPreferences(
                 GAMEHELPER_SHARED_PREFS, Context.MODE_PRIVATE).edit();
         editor.putInt(KEY_SIGN_IN_CANCELLATIONS, cancellations + 1);
-        editor.commit();
+        editor.apply();
         return cancellations + 1;
     }
 
@@ -645,7 +640,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         SharedPreferences.Editor editor = mAppContext.getSharedPreferences(
                 GAMEHELPER_SHARED_PREFS, Context.MODE_PRIVATE).edit();
         editor.putInt(KEY_SIGN_IN_CANCELLATIONS, 0);
-        editor.commit();
+        editor.apply();
     }
 
     /** Handles a connection failure. */
@@ -663,7 +658,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         debugLog("   - details: " + mConnectionResult.toString());
 
         int cancellations = getSignInCancellations();
-        boolean shouldResolve = false;
+        boolean shouldResolve;
 
         if (mUserInitiatedSignIn) {
             debugLog("onConnectionFailed: WILL resolve because user initiated sign-in.");
@@ -799,7 +794,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
                 showFailureDialog(mActivity, actResp, errorCode);
             } else {
                 debugLog("Not showing error dialog because mShowErrorDialogs==false. "
-                        + "" + "Error was: " + mSignInFailureReason);
+                        + "Error was: " + mSignInFailureReason);
             }
         }
     }
@@ -813,7 +808,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
             Log.e("GameHelper", "*** No Activity. Can't show failure dialog!");
             return;
         }
-        Dialog errorDialog = null;
+        Dialog errorDialog;
 
         switch (actResp) {
             case GamesActivityResultCodes.RESULT_APP_MISCONFIGURED:
@@ -894,7 +889,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
     // Represents the reason for a sign-in failure
     public static class SignInFailureReason {
         public static final int NO_ACTIVITY_RESULT_CODE = -100;
-        int mServiceErrorCode = 0;
+        int mServiceErrorCode;
         int mActivityResultCode = NO_ACTIVITY_RESULT_CODE;
 
         public int getServiceErrorCode() {
