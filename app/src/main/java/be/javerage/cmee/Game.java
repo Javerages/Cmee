@@ -13,6 +13,8 @@ import android.location.LocationManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.view.GestureDetector;
@@ -64,7 +66,7 @@ import org.apache.http.message.BasicNameValuePair;*/
 
 public class Game extends AppCompatActivity implements 
         GestureDetector.OnGestureListener,
-        GestureDetector.OnDoubleTapListener, GoogleMap.OnMapClickListener, OnMapReadyCallback {
+        GestureDetector.OnDoubleTapListener, GoogleMap.OnMapClickListener, OnMapReadyCallback, GoogleMap.OnCameraMoveListener {
 
     // Update frequency in seconds
     public static final int UPDATE_INTERVAL_IN_SECONDS = 20;
@@ -99,6 +101,22 @@ public class Game extends AppCompatActivity implements
 
     //Gestures:
     private GestureDetector mDetector;
+
+    private final Handler mHideHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mHideRunnable = () -> {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+    };
+    private float mPreviousZoom = -1f;
+
+    private void showActionBarTemporarily() {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().show();
+            mHideHandler.removeCallbacks(mHideRunnable);
+            mHideHandler.postDelayed(mHideRunnable, 3000);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -299,6 +317,7 @@ public class Game extends AppCompatActivity implements
     private void setUpMap() {
         if (mMap != null) {
             this.mMap.setOnMapClickListener(this);
+            this.mMap.setOnCameraMoveListener(this);
             mMap.getUiSettings().setMapToolbarEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
             mMap.getUiSettings().setCompassEnabled(true);
@@ -312,6 +331,18 @@ public class Game extends AppCompatActivity implements
         }
     }
 
+
+    @Override
+    public void onCameraMove() {
+        if (mMap != null) {
+            float currentZoom = mMap.getCameraPosition().zoom;
+            if (mPreviousZoom != -1f && currentZoom < mPreviousZoom) {
+                // Zooming out
+                showActionBarTemporarily();
+            }
+            mPreviousZoom = currentZoom;
+        }
+    }
 
     public void onLocationChanged(Location location) {
         mAchievementsClient.increment(this.getString(R.string.achievement_i_started_it), 1);
@@ -393,6 +424,9 @@ public class Game extends AppCompatActivity implements
         CheckHits(Pointsize, acc);
 
         RefreshMap();
+        if (!playing) {
+            mHideHandler.postDelayed(mHideRunnable, 2000);
+        }
         playing = true;
 
         if (radius > 10000) {
@@ -561,6 +595,11 @@ public class Game extends AppCompatActivity implements
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            if (ev.getY() < 150) {
+                showActionBarTemporarily();
+            }
+        }
         super.dispatchTouchEvent(ev);
         this.mDetector.onTouchEvent(ev);
         //super.onTouchEvent(ev);
