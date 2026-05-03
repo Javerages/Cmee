@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -31,6 +30,8 @@ import com.google.android.gms.games.PlayGames;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -52,8 +53,9 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthLoginTask = null;
-    private UserRegisterTask mAuthRegisterTask = null;
+    private boolean mIsAuthLoginRunning = false;
+    private boolean mIsAuthRegisterRunning = false;
+    private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -114,7 +116,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
      * errors are presented and no actual login attempt is made.
      */
     public void attemptLogin() {
-        if (mAuthLoginTask != null) {
+        if (mIsAuthLoginRunning) {
             Toast.makeText(getApplicationContext(), "Please be patient", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -157,13 +159,35 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthLoginTask = new UserLoginTask(email, password);
-            mAuthLoginTask.execute((Void) null);
+            mIsAuthLoginRunning = true;
+            mExecutorService.execute(() -> {
+                boolean success;
+                try {
+                    success = askServerLogin(email, password);
+                } catch (IOException e) {
+                    success = false;
+                }
+
+                final boolean finalSuccess = success;
+                runOnUiThread(() -> {
+                    mIsAuthLoginRunning = false;
+                    showProgress(false);
+
+                    if (finalSuccess) {
+                        App globalVariable = (App) getApplicationContext();
+                        globalVariable.MainUser().SetUsername(email.substring(0, email.indexOf('@')));
+                        globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
+                        globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
+                        SendToast("Logged in");
+                        finish();
+                    }
+                });
+            });
         }
     }
 
     public void attemptRegister() {
-        if (mAuthRegisterTask != null) {
+        if (mIsAuthRegisterRunning) {
             Toast.makeText(getApplicationContext(), "Please be patient", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -206,9 +230,55 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthRegisterTask = new UserRegisterTask(email, password);
-            mAuthRegisterTask.execute((Void) null);
+            mIsAuthRegisterRunning = true;
+            mExecutorService.execute(() -> {
+                boolean success;
+                try {
+                    success = askServerRegister(email, password);
+                } catch (IOException e) {
+                    success = false;
+                }
+
+                final boolean finalSuccess = success;
+                runOnUiThread(() -> {
+                    mIsAuthRegisterRunning = false;
+                    showProgress(false);
+
+                    if (finalSuccess) {
+                        App globalVariable = (App) getApplicationContext();
+                        globalVariable.MainUser().SetUsername(email.substring(0, email.indexOf('@')));
+                        globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
+                        globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
+                        SendToast("Registered");
+                        mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
+                        finish();
+                    }
+                });
+            });
         }
+    }
+
+    /**
+     * Used to login on javerage.cmee.yzi.me - logic replaced by googleAPI call
+     */
+    public boolean askServerLogin(String username, String pass) throws IOException {
+        //TODO: Check if user has score online
+        mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
+        return true;
+    }
+
+    /**
+     * OLD API call to site site no longer exists so no longer used
+     * Was poorly implemented anyways
+     */
+    public boolean askServerRegister(String username, String pass) throws IOException {
+        return false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mExecutorService.shutdown();
     }
 
     private boolean isEmailValid(String email) {
@@ -322,160 +392,6 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
         int ADDRESS = 0;
         int IS_PRIMARY = 1;
     }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            Boolean success;
-            try {
-                success = AskServer(mEmail, mPassword);
-            } catch (IOException e) {
-                success = false;
-            }
-            return success;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthLoginTask = null;
-            showProgress(false);
-
-            if (success) {
-                App globalVariable = (App) getApplicationContext();
-                globalVariable.MainUser().SetUsername(mEmail.substring(0, mEmail.indexOf('@')));
-                globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
-                globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
-                SendToast("Logged in");
-                finish();
-            } else {
-
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthLoginTask = null;
-            showProgress(false);
-        }
-
-/**
-* Used to login on javerage.cmee.yzi.me - logic replaced by googleAPI call
-* */
-        public boolean AskServer(String username, String pass) throws IOException {
-
-                    //TODO: Check if user has score online
-                    mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
-
-            return true;
-        }
-    }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserRegisterTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserRegisterTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            Boolean success;
-            try {
-                success = AskServer(mEmail, mPassword);
-            } catch (IOException e) {
-                success = false;
-            }
-            return success;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthRegisterTask = null;
-            showProgress(false);
-
-            if (success) {
-                App globalVariable = (App) getApplicationContext();
-                globalVariable.MainUser().SetUsername(mEmail.substring(0, mEmail.indexOf('@')));
-                globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
-                globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
-                SendToast("Registered");
-                mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
-                finish();
-            } else {
-
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthRegisterTask = null;
-            showProgress(false);
-        }
-
-        /**
-         * OLD API call to site site no longer exists so no longer used
-         * Was poorly implemented anyways
-         * */
-        public boolean AskServer(String username, String pass) throws IOException {
-
-            Boolean success = false;
-           /* // Instantiate the Request.
-            HttpClient req = new DefaultHttpClient();
-            HttpPost param = new HttpPost("http://cmee.yzi.me/index.php/app/register");
-            //param.addHeader("username",username);
-            //param.addHeader("password",pass);
-            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-            nameValuePairs.add(new BasicNameValuePair("username", username));
-            nameValuePairs.add(new BasicNameValuePair("password", pass));
-            param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-            HttpResponse response = req.execute(param);
-
-            StatusLine statusLine = response.getStatusLine();
-            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                response.getEntity().writeTo(out);
-                out.close();
-                String responseString = out.toString();
-                App globalVariable = (App) getApplicationContext();
-
-                if (isInteger(responseString)) {//mProgressView.post();
-                    globalVariable.MainUser().SetUserid(Integer.parseInt(responseString));
-                    success = true;
-                } else {
-                    SendToast(responseString);
-                }
-            } else {
-                success = false;
-                //Closes the connection.
-                response.getEntity().getContent().close();
-                throw new IOException(statusLine.getReasonPhrase());
-            }*/
-
-            return success;
-        }
-    }
-
 
 }
 
