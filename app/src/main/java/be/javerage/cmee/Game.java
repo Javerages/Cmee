@@ -29,7 +29,6 @@ import androidx.core.view.GestureDetectorCompat;
 import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayGames;
-import com.google.android.gms.games.PlayGamesSdk;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -120,7 +119,7 @@ public class Game extends AppCompatActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        PlayGamesSdk.initialize(this);
+        GoogleApiHelper.initializePlayGames(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         if (getSupportActionBar() != null) {

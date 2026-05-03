@@ -26,7 +26,6 @@ import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.GamesSignInClient;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayGames;
-import com.google.android.gms.games.PlayGamesSdk;
 
 import be.javerage.cmee.R;
 
@@ -51,7 +50,7 @@ public class MainMenu extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        PlayGamesSdk.initialize(this);
+        GoogleApiHelper.initializePlayGames(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
 

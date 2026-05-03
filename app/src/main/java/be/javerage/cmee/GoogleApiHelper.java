@@ -39,12 +39,24 @@ public class GoogleApiHelper {
     private Context mAppContext = null;
     Handler mHandler;
 
+    private static boolean sIsPlayGamesInitialized = false;
+
+    /**
+     * Encapsulated initialization to ensure it happens exactly once.
+     */
+    public static synchronized void initializePlayGames(Context context) {
+        if (!sIsPlayGamesInitialized) {
+            PlayGamesSdk.initialize(context);
+            sIsPlayGamesInitialized = true;
+        }
+    }
+
 
     public GoogleApiHelper(AppCompatActivity activity) {
         mActivity = activity;
         mAppContext = activity.getApplicationContext();
         mHandler = new Handler();
-        PlayGamesSdk.initialize(mAppContext);
+        initializePlayGames(mAppContext);
         mGamesSignInClient = PlayGames.getGamesSignInClient(mActivity);
     }
 

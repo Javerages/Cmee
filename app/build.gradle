@@ -17,8 +17,8 @@ android {
 
     defaultConfig {
         applicationId 'be.javerage.cmee'
-        versionCode 202602
-        versionName 'Yearly patch, refactored with Gemini'
+        versionCode 202603
+        versionName 'API updates'
         minSdk = 23
         targetSdk = 35
         //multiDexEnabled true

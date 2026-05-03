@@ -28,7 +28,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.PlayGames;
-import com.google.android.gms.games.PlayGamesSdk;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,7 +65,7 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        PlayGamesSdk.initialize(this);
+        GoogleApiHelper.initializePlayGames(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
