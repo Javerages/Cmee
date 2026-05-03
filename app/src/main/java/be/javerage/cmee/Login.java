@@ -69,7 +69,9 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
         GoogleApiHelper.initializePlayGames(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         mAchievementsClient = PlayGames.getAchievementsClient(this);
 
@@ -176,8 +178,8 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
                     if (finalSuccess) {
                         App globalVariable = (App) getApplicationContext();
                         globalVariable.MainUser().SetUsername(email.substring(0, email.indexOf('@')));
-                        globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
-                        globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
+                        globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).apply();
+                        globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).apply();
                         SendToast("Logged in");
                         finish();
                     }
@@ -247,8 +249,8 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
                     if (finalSuccess) {
                         App globalVariable = (App) getApplicationContext();
                         globalVariable.MainUser().SetUsername(email.substring(0, email.indexOf('@')));
-                        globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).commit();
-                        globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).commit();
+                        globalVariable.storage.edit().putString("Username", globalVariable.MainUser().GetUsername()).apply();
+                        globalVariable.storage.edit().putInt("Userid", globalVariable.MainUser().GetUserid()).apply();
                         SendToast("Registered");
                         mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_a_new_explorer));
                         finish();
@@ -259,7 +261,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
     }
 
     /**
-     * Used to login on javerage.cmee.yzi.me - logic replaced by googleAPI call
+     * Used to log in on javerage.cmee.yzi.me - logic replaced by googleAPI call
      */
     public boolean askServerLogin(String username, String pass) throws IOException {
         //TODO: Check if user has score online
@@ -268,8 +270,8 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
     }
 
     /**
-     * OLD API call to site site no longer exists so no longer used
-     * Was poorly implemented anyways
+     * OLD API call to site, site no longer exists so no longer used
+     * Was poorly implemented anyway
      */
     public boolean askServerRegister(String username, String pass) throws IOException {
         return false;
@@ -368,16 +370,7 @@ public class Login extends AppCompatActivity implements LoaderManager.LoaderCall
 
         mEmailView.setAdapter(adapter);
     }
-
-    public boolean isInteger(String s) {
-        try {
-            Integer.parseInt(s);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        // only got here if we didn't return false
-        return true;
-    }
+    
 
     private void SendToast(final String message) {
         mProgressView.post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());

@@ -3,16 +3,13 @@ package be.javerage.cmee;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -27,7 +24,6 @@ import com.google.android.gms.games.GamesSignInClient;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayGames;
 
-import be.javerage.cmee.R;
 
 /*import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -42,7 +38,6 @@ import org.apache.http.message.BasicNameValuePair;*/
 
 
 public class MainMenu extends AppCompatActivity {
-    PostScoreTask Postscore = null;
 
     private AchievementsClient mAchievementsClient;
     private LeaderboardsClient mLeaderboardsClient;
@@ -64,24 +59,13 @@ public class MainMenu extends AppCompatActivity {
     private void checkIfAutomaticallySignedIn() {
         mGamesSignInClient.isAuthenticated().addOnCompleteListener(task -> {
             boolean isAuthenticated = (task.isSuccessful() && task.getResult().isAuthenticated());
-            if (isAuthenticated) {
-                updateUIForSignedInState(true);
-            } else {
-                updateUIForSignedInState(false);
-            }
+            updateUIForSignedInState(isAuthenticated);
         });
     }
 
     private void updateUIForSignedInState(boolean signedIn) {
-        Button Loginbtn = findViewById(R.id.buttonLogin);
-        Button Logoutbtn = findViewById(R.id.buttonLogout);
-        if (signedIn) {
-            Loginbtn.setVisibility(View.GONE);
-            Logoutbtn.setVisibility(View.VISIBLE);
-        } else {
-            Loginbtn.setVisibility(View.VISIBLE);
-            Logoutbtn.setVisibility(View.GONE);
-        }
+        findViewById(R.id.buttonLogin).setVisibility(signedIn ? View.GONE : View.VISIBLE);
+        findViewById(R.id.buttonLogout).setVisibility(signedIn ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -186,11 +170,7 @@ public class MainMenu extends AppCompatActivity {
         }
 
         mGamesSignInClient.signIn().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult().isAuthenticated()) {
-                updateUIForSignedInState(true);
-            } else {
-                updateUIForSignedInState(false);
-            }
+            updateUIForSignedInState(task.isSuccessful() && task.getResult().isAuthenticated());
         });
     }
 
@@ -233,81 +213,6 @@ public class MainMenu extends AppCompatActivity {
             AdView mAdView = getView().findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
-        }
-    }
-
-    //string myParameters = "userid=" + Convert.ToInt64(App.Mainuser.Userid) + "&score=" + App.Mainuser.Score + "&type=all";
-    //Uri URI = new Uri("http://cmee.yzi.me/index.php/app/sethighscores", UriKind.Absolute);
-    private class PostScoreTask extends AsyncTask<String, Void, Boolean> {
-
-        private Exception exception;
-        private final String reply = "No connection";
-        private boolean finished = false;
-
-        protected Boolean doInBackground(String... type) {
-            try {
-                postScore(type[0]);
-            } catch (Exception e) {
-                this.exception = e;
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-
-            SendToast(reply);
-            if (reply.equals("Highscore saved")) {
-                mAchievementsClient.unlock(getApplicationContext().getString(R.string.achievement_beat_that));
-            }
-            finished = true;
-            super.onPostExecute(aBoolean);
-        }
-
-        private void SendToast(final String message) {
-
-            View posted = findViewById(R.id.buttonHighscores);
-            posted.post(() -> Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show());
-        }
-
-        /**
-         * old class to post score to website - bad implementation -feelsbadman (use google services instead)
-         */
-        public void postScore(String type) {
-            /*
-            // Create a new HttpClient and Post Header
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost Param = new HttpPost("http://cmee.yzi.me/index.php/app/setAllhighscores");
-
-            try {
-                App globalVariable = (App) getApplicationContext();
-
-
-                // Add your data
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
-                nameValuePairs.add(new BasicNameValuePair("userid", String.valueOf(globalVariable.MainUser().GetUserid())));
-                nameValuePairs.add(new BasicNameValuePair("all", String.valueOf(globalVariable.MainUser().GetScore())));
-                nameValuePairs.add(new BasicNameValuePair("daily", String.valueOf(globalVariable.MainUser().GetScoreDay())));
-                nameValuePairs.add(new BasicNameValuePair("weekly", String.valueOf(globalVariable.MainUser().GetScoreWeek())));
-                Param.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                // Execute HTTP Post Request
-                HttpResponse response = httpclient.execute(Param);
-                StatusLine statusLine = response.getStatusLine();
-                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    response.getEntity().writeTo(out);
-                    out.close();
-                    String responseString = out.toString();
-                    if (responseString != null) {
-                        reply = responseString.toString();
-                    }
-                }
-            } catch (ClientProtocolException e) {
-                // Auto-generated catch block
-            } catch (IOException e) {
-                // Auto-generated catch block
-            }*/
         }
     }
 

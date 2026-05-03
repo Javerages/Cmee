@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -17,12 +18,18 @@ import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayGames;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import be.javerage.cmee.R;
 
 
 public class Highscores extends AppCompatActivity {
     private AchievementsClient mAchievementsClient;
     private LeaderboardsClient mLeaderboardsClient;
+    private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
+    private String mUploadReply = "No connection";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +84,38 @@ public class Highscores extends AppCompatActivity {
     public void GoAll(View view) {
         mLeaderboardsClient.getLeaderboardIntent(this.getString(R.string.leaderboard_all_time_highscores))
                 .addOnSuccessListener(intent -> startActivityForResult(intent, 3));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mExecutorService.shutdown();
+    }
+
+    public void postScore(String type) {
+        mExecutorService.execute(() -> {
+            try {
+                // Logic previously in MainMenu/Game
+                // This is a placeholder for the legacy PHP upload logic if ever needed
+                // Currently replaced by Play Games Leaderboards
+                
+                /*
+                App globalVariable = (App) getApplicationContext();
+                // legacy upload code here...
+                */
+                
+                mUploadReply = "Highscore saved";
+            } catch (Exception e) {
+                mUploadReply = "Upload failed";
+            }
+
+            runOnUiThread(() -> {
+                Toast.makeText(getApplicationContext(), mUploadReply, Toast.LENGTH_LONG).show();
+                if (mUploadReply.equals("Highscore saved")) {
+                    mAchievementsClient.unlock(getString(R.string.achievement_beat_that));
+                }
+            });
+        });
     }
 
     public static class AdFragment extends Fragment {
